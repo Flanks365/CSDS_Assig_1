@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logged in as the user name: [USER_ID]</title>
+    <link rel="stylesheet" href="../CSS/styles.css" type="text/css">
+</head>
+
+<body>
+    <h1 align="center">Logged in as the user name: [USER_ID]</h1>
+
+    <!-- Admin-only buttons -->
+    <!-- Uncomment if the user is an admin -->
+    <!--
+    <div style="text-align: center;">
+        <form action="upload" method="GET">
+            <input type="submit" value="UPLOAD">
+        </form>
+    </div>
+    <div style="text-align: center;">
+        <form action="editQuizzes" method="GET">
+            <input type="submit" value="Edit Quizzes">
+        </form>
+    </div>
+    -->
+    <!-- Play Quizzes button -->
+    <div style="text-align: center;">
+        <form action="categories" method="GET">
+            <input type="submit" value="Play Quizzes">
+        </form>
+    </div>
+
+    <!-- Autoplay button -->
+    <div style="text-align: center;">
+        <form action="Quizpage" method="GET">
+            <input type="hidden" name="autoplay" value="true">
+            <input type="submit" value="Autoplay">
+        </form>
+    </div>
+
+    <!-- Logout button -->
+    <div style="text-align: center;">
+        <form action="logout" method="GET">
+            <input type="submit" value="LOGOUT">
+        </form>
+    </div>
+</body>
+
+</html>

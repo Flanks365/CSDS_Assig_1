@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <link rel="stylesheet" href="../CSS/styles.css" type="text/css">
+</head>
+<body>
+    <header>
+        <h1>${title}</h1>
+        <p>Test your knowledge of the ${categoryName} landscape!</p>
+    </header>
+    <main class="quiz-container">
+        <div id="quiz-content">
+            <div class="question">
+                <h3>${questionText}</h3>
+                <div class="answers">
+                    <!-- Repeat this button structure for each answer -->
+                    <button onclick="selectAnswer('${answerId}', '${questionId}', '${currentQuestionIndex}')">
+                        ${answerText}
+                    </button>
+                </div>
+                <br><br>
+                <button onclick="window.location.href='main'">Back to Main Page</button>
+                <br><br>
+                <button onclick="window.location.href='categories'">Back to Play Quizzes</button>
+            </div>
+        </div>
+    </main>
+    <script>
+        function selectAnswer(answerId, questionId, currentIndex) {
+            console.log('Fetching answer for questionId:', questionId, 'and answerId:', answerId);
+            fetch('getCorrectAnswer?questionId=' + questionId + '&answerId=' + answerId)
+                .then(response => response.text())
+                .then(result => {
+                    if (result === 'correct') {
+                        alert('Moving to the next question.');
+                        window.location.href = 'Quizpage?category_name=${categoryName}&currentQuestionIndex=' + (currentIndex + 1);
+                    } else {
+                        alert('Try Again.');
+                    }
+                })
+                .catch(error => console.error('Error checking the answer:', error));
+        }
+    </script>
+</body>
+</html>
