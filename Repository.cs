@@ -2,15 +2,18 @@ using System;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using System.IO;
+using CSDS_Assign_1;
 
 public class Repository : IRepository, IDisposable
 {
     private readonly string databaseIP = "192.168.1.165"; // Replace this with your database IP
     private SqlConnection? con;
+    public String? rs;
 
     public Repository()
     {
         con = null;
+        rs = null;
     }
 
     public void Init(string connectString, string user, string password)
@@ -168,19 +171,24 @@ public class Repository : IRepository, IDisposable
         {
             string query = $"SELECT {fieldString} FROM {tableString} WHERE {conditionString}";
             Console.WriteLine(query);
+
             using (SqlCommand stmt = new SqlCommand(query, con))
             {
                 using (SqlDataReader reader = stmt.ExecuteReader())
                 {
+                    // Initialize rs as an empty string
+                    rs = string.Empty;
+
                     while (reader.Read())
                     {
-                        // Example: Print all columns of the current row
+                        // Example: Append all columns of the current row to rs
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            Console.Write(reader[i] + "\t");
+                            rs += reader[i].ToString() + "\t";  // Tab separated
                         }
-                        Console.WriteLine();
+                        rs += "\n";  // New line for each row
                     }
+                    Console.WriteLine("Query result stored in rs.");
                 }
             }
         }
@@ -190,25 +198,31 @@ public class Repository : IRepository, IDisposable
         }
     }
 
+
     public void Select(string fieldString, string tableString)
     {
         try
         {
             string query = $"SELECT {fieldString} FROM {tableString}";
             Console.WriteLine(query);
+
             using (SqlCommand stmt = new SqlCommand(query, con))
             {
                 using (SqlDataReader reader = stmt.ExecuteReader())
                 {
+                    // Initialize rs as an empty string
+                    rs = string.Empty;
+
                     while (reader.Read())
                     {
-                        // Example: Print all columns of the current row
+                        // Example: Append all columns of the current row to rs
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            Console.Write(reader[i] + "\t");
+                            rs += reader[i].ToString() + "\t";  // Tab separated
                         }
-                        Console.WriteLine();
+                        rs += "\n";  // New line for each row
                     }
+                    Console.WriteLine("Query result stored in rs.");
                 }
             }
         }
@@ -266,4 +280,46 @@ public class Repository : IRepository, IDisposable
     {
         con?.Dispose();
     }
+
+    public List<Category> GetCategories()
+    {
+        List<Category> categories = new List<Category>();
+
+        try
+        {
+            // Ensure that rs has been populated by calling Select earlier
+            if (string.IsNullOrEmpty(rs))
+            {
+                Console.WriteLine("No data to parse. Ensure Select() is called first.");
+                return categories;
+            }
+
+            // Split the results by rows (new lines)
+            string[] rows = rs.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string row in rows)
+            {
+                // Split each row by tab characters to get individual fields
+                string[] columns = row.Split('\t');
+
+                if (columns.Length >= 3)
+                {
+                    string categoryName = columns[0].Trim();
+                    string imgType = columns[2].Trim();
+
+                    // Assuming you have a method to retrieve the binary data (image)
+                    byte[]? image = GetBlobAsBytes("image"); 
+
+                    categories.Add(new Category(categoryName, imgType, image!));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error while parsing categories: " + ex.Message);
+        }
+
+        return categories;
+    }
+
 }
