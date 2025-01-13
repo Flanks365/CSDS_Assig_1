@@ -1,0 +1,183 @@
+body {
+  background-color: black;
+  color: rgb(196, 196, 196);
+  font-family: "Lucida Console", "Courier New", monospace;
+}
+
+form {
+  margin: 0 auto;
+  width: 50%;
+  padding: 1em;
+  border: 3px solid rgb(147, 147, 147);
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.1);
+  max-width: 500px;
+}
+
+input{
+  width: 100%;
+  padding: 0.5em;
+  margin: 0.5em 0;
+  border: 1px solid rgb(147, 147, 147);
+  border-radius: 5px;
+}
+
+input[type="submit"] {
+  background-color: rgb(255, 255, 255);
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+input[type="submit"]:hover {
+  background-color: rgb(147, 147, 147);
+}
+
+#controlButtons {
+  display:flex;
+  justify-content: right;
+}
+
+#controlButtons form {
+  margin: 0 auto;
+  width: auto;
+  padding: 0.5em;
+  border: none;
+  border-radius: 5px;
+  background-color: black;
+}
+
+.categories {
+  display:flex;
+  flex-direction:row;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.categoryContainer {
+  display:flex;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 2rem;
+  padding: 1rem;
+  flex-direction:column;
+}
+
+.categoryContainer h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.categoryContainer form {
+  width: fit-content;
+  background-color: rgba(255, 255, 255, 0);
+  margin-top: 0.1rem;
+  margin-bottom: 0.1rem;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.categoryContainer form input {
+  width: 100%;
+}
+
+.categoryImg {
+  margin-top: auto;
+  margin-bottom: auto;
+  width: 15em;
+  height: auto;
+}
+
+button {
+  margin: 0.5em;
+  padding: 0.5em;
+  border: 1px solid rgb(255, 255, 255);
+  border-radius: 1px;
+  background-color: rgb(255, 255, 255);
+  color: black;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.correctButton {
+  border: 1px solid rgb(102, 208, 107);
+  background-color: rgb(102, 208, 107);
+}
+
+.incorrectButton {
+  border: 1px solid rgb(212, 102, 102);
+  background-color: rgb(212, 102, 102);
+}
+
+#quoteOrBlob img {
+  max-height: 60vh;
+  width: auto;
+}
+
+#quoteOrBlob video {
+  max-height: 60vh;
+  width: auto;
+}
+
+#quoteOrBlob img {
+  max-height: 60vh;
+  width: auto;
+}
+
+.animation{
+  animation:1s fade-out ease;
+  animation-iteration-count:infinite;
+  animation-fill-mode:forwards;
+}
+
+@keyframes fade-out{
+  from{background-color:white; border-color: white;}
+  50%{background-color: rgb(102, 208, 107); border-color: rgb(102, 208, 107);}
+  to{background-color:white; border-color: white;}
+}
+
+.done{
+  background-color: grey;
+}
+
+.selected {
+  /* background-color: brown; */
+  border: 4px solid rgb(222, 151, 50);
+}
+
+.answers {
+  display: flex;
+}
+
+.button-container {
+  margin: 0.5em;
+  /* padding: 0.5em; */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgb(66, 66, 66);
+}
+
+.button-container button {
+  margin: 0;
+  /* padding: 0.5em; */
+}
+
+.answer-counter {
+  padding: 0.5em;
+}
+
+#answer-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+#answer-container button {
+  flex-wrap: wrap;
+  width: 40%;
+  /* height: 15vh; */
+  font-size: 3vh;
+}
