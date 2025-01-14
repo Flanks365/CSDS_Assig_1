@@ -14,6 +14,13 @@ namespace CSDS_Assign_1.Controllers
             _repository = repository;
         }
 
+        // Serve the Login HTML page
+        [HttpGet("signup")]
+        public IActionResult Signup()
+        {
+            return GetHtmlFile("signup");
+        }        
+        
         // Serve the Categories HTML page
         [HttpGet("categories")]
         public IActionResult Categories()
