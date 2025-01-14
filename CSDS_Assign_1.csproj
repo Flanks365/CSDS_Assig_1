@@ -7,7 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\CS\" />
+    <Compile Remove="wwwroot\CS\**" />
+    <Content Remove="wwwroot\CS\**" />
+    <EmbeddedResource Remove="wwwroot\CS\**" />
+    <None Remove="wwwroot\CS\**" />
   </ItemGroup>
 
   <ItemGroup>
