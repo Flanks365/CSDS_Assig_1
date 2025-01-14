@@ -15,6 +15,13 @@ namespace CSDS_Assign_1.Controllers
         }
 
         // Serve the Login HTML page
+        [HttpGet("login")]
+        public IActionResult Login()
+        {
+            return GetHtmlFile("login");
+        }
+
+        // Serve the Login HTML page
         [HttpGet("signup")]
         public IActionResult Signup()
         {
