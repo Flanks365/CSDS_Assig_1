@@ -13,19 +13,6 @@ app.UseStaticFiles();
 
 app.UseAuthorization();
 
-app.UseStaticFiles();
-
 app.MapControllers();
-
-
-app.Map("/login", appBuilder =>
-{
-    appBuilder.Run(async context =>
-    {
-        context.Response.ContentType = "text/html";
-        await context.Response.SendFileAsync(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot","HTML","Login", "Login.html"));
-    });
-});
-
 
 app.Run();
