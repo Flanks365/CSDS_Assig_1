@@ -1,0 +1,61 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+    <title>Logged in as: user</title>
+    <link rel="stylesheet" href="../CSS/styles.css" type="text/css">
+</head>
+<body bgcolor="#f0f0f0">
+    <h1 align="center">Logged in as: user</h1>
+
+    <!-- Admin-only upload button -->
+    <div style="text-align: center;">
+        <form action="upload" method="GET">
+            <input type="submit" value="UPLOAD">
+        </form>
+    </div>
+
+    <!-- Quizzes button -->
+    <div style="text-align: center;">
+        <form action="play" method="GET">
+            <input type="submit" value="Quizzes">
+        </form>
+    </div>
+
+    <!-- Logout button -->
+    <div style="text-align: center;">
+        <form action="logout" method="GET">
+            <input type="submit" value="LOGOUT">
+        </form>
+    </div>
+
+    <!-- Quiz question section -->
+    <main class="quiz-container">
+        <div id="question-container">
+            <h2 id="question-text">Question 1: Who directed the movie Casablanca?</h2>
+            <img id="question-media" src="images/casablanca.jpg" alt="Casablanca Poster">
+            <!-- Example of different media types:
+                 Use <audio src="audio/clip.mp3" controls></audio> for audio
+                 Use <video src="video/clip.mp4" controls autoplay></video> for video
+            -->
+            <div class="answers">
+                <button onclick="checkAnswer('wrong')">Orson Welles</button>
+                <button onclick="checkAnswer('correct')">Michael Curtiz</button>
+                <button onclick="checkAnswer('wrong')">John Ford</button>
+                <button onclick="checkAnswer('wrong')">Alfred Hitchcock</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Function to check the answer and move to the next question
+        function checkAnswer(answer) {
+            if (answer === 'correct') {
+                alert('Correct! Moving to the next question.');
+                // Logic to load the next question
+            } else {
+                alert('Incorrect, try again.');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Quiz</title>
+    <link rel="stylesheet" href="../CSS/styles.css" type="text/css">
+</head>
+
+<body>
+    <div id="controlButtons" style="text-align: center;">
+        <!-- Admin-only section -->
+        <!-- Uncomment if the user is an admin -->
+        <!--
+        <form action="editQuiz/index.html" method="GET">
+            <input type="submit" value="Edit Quizzes">
+        </form>
+        -->
+        <!-- Logout button -->
+        <form action="logout" method="GET">
+            <input type="submit" value="LOGOUT">
+        </form>
+    </div>
+
+    <h1>Select Quiz</h1>
+
+    <form>
+        <input type="button" onclick="window.location.href='moderatedQuiz.html';" value="Join Moderated Quiz">
+    </form>
+
+    <div class="categories">
+
+        <br><br>
+        <div class="categoriesContainer" style="display:flex;">
+        </div>
+        <br><br>
+    </div>
+
+    <br><br><br>
+    <form action="main" method="get">
+        <input type="submit" value="Back to Main Page">
+    </form>
+
+    <script src="./JS/categories.js"></script>
+</body>
+
+</html>
