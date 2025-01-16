@@ -1,27 +1,29 @@
-using System;
-using System.Data;
-using Microsoft.Data.SqlClient;
-using System.IO;
 using CSDS_Assign_1;
+using Microsoft.Data.SqlClient;
+using System.Data;
 
 public class Repository : IRepository, IDisposable
 {
-    private readonly string databaseIP = "192.168.1.165"; // Replace this with your database IP
+    private readonly string databaseIP = "192.168.1.165"; 
+    private readonly string myDatabase = "master";
+    private readonly string myUser = "sa";
+    private readonly string myPassword = "oracle12";
+
+
     private SqlConnection? con;
-    public String? rs;
+    public ResultSet rs;
 
     public Repository()
     {
         con = null;
-        rs = null;
+        rs = new ResultSet();
     }
 
-    public void Init(string connectString, string user, string password)
-
+    public void Init(string db, string user, string password)
     {
         try
         {
-            string connection = $"Data Source={databaseIP},1433;Initial Catalog=XE;User ID={user};Password={password}";
+            string connection = $"Data Source={databaseIP},1433;Initial Catalog={db};User ID={user};Password={password};TrustServerCertificate=true;";
             con = new SqlConnection(connection);
             con.Open();
             Console.WriteLine("Connection established.");
@@ -176,17 +178,27 @@ public class Repository : IRepository, IDisposable
             {
                 using (SqlDataReader reader = stmt.ExecuteReader())
                 {
-                    // Initialize rs as an empty string
-                    rs = string.Empty;
+                    rs.Rows.Clear();  
 
                     while (reader.Read())
                     {
-                        // Example: Append all columns of the current row to rs
+                        Row row = new Row();
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            rs += reader[i].ToString() + "\t";  // Tab separated
+                            if (reader.GetFieldType(i) == typeof(byte[]))  
+                            {
+                                row.Columns.Add(reader.GetValue(i));
+                            }
+                            else if (reader.GetFieldType(i) == typeof(Guid))
+                            {
+                                row.Columns.Add(reader.GetGuid(i).ToString());  
+                            }
+                            else  
+                            {
+                                row.Columns.Add(reader.GetString(i));
+                            }
                         }
-                        rs += "\n";  // New line for each row
+                        rs.Rows.Add(row);
                     }
                     Console.WriteLine("Query result stored in rs.");
                 }
@@ -197,7 +209,6 @@ public class Repository : IRepository, IDisposable
             PrintSqlException(ex);
         }
     }
-
 
     public void Select(string fieldString, string tableString)
     {
@@ -210,17 +221,27 @@ public class Repository : IRepository, IDisposable
             {
                 using (SqlDataReader reader = stmt.ExecuteReader())
                 {
-                    // Initialize rs as an empty string
-                    rs = string.Empty;
+                    rs.Rows.Clear(); 
 
                     while (reader.Read())
                     {
-                        // Example: Append all columns of the current row to rs
+                        Row row = new Row();
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            rs += reader[i].ToString() + "\t";  // Tab separated
+                            if (reader.GetFieldType(i) == typeof(byte[]))  
+                            {
+                                row.Columns.Add(reader.GetValue(i));
+                            }
+                            else if (reader.GetFieldType(i) == typeof(Guid))
+                            {
+                                row.Columns.Add(reader.GetGuid(i).ToString()); 
+                            }
+                            else  
+                            {
+                                row.Columns.Add(reader.GetString(i));
+                            }
                         }
-                        rs += "\n";  // New line for each row
+                        rs.Rows.Add(row);
                     }
                     Console.WriteLine("Query result stored in rs.");
                 }
@@ -230,29 +251,6 @@ public class Repository : IRepository, IDisposable
         {
             PrintSqlException(ex);
         }
-    }
-
-    public byte[]? GetBlobAsBytes(string columnName)
-    {
-        try
-        {
-            using (SqlDataReader reader = con!.CreateCommand().ExecuteReader())
-            {
-                if (reader.HasRows)
-                {
-                    int columnIndex = reader.GetOrdinal(columnName);
-                    if (!reader.IsDBNull(columnIndex))
-                    {
-                        return (byte[])reader[columnIndex];
-                    }
-                }
-            }
-        }
-        catch (SqlException ex)
-        {
-            PrintSqlException(ex);
-        }
-        return null;
     }
 
     private static byte[] ReadStreamAsBytes(Stream stream)
@@ -284,31 +282,20 @@ public class Repository : IRepository, IDisposable
     public List<Category> GetCategories()
     {
         List<Category> categories = new List<Category>();
+        Init(myDatabase, myUser, myPassword);
+        Select("*", "categories");
 
         try
         {
-            // Ensure that rs has been populated by calling Select earlier
-            if (string.IsNullOrEmpty(rs))
+
+            foreach (var row in rs.Rows)
             {
-                Console.WriteLine("No data to parse. Ensure Select() is called first.");
-                return categories;
-            }
-
-            // Split the results by rows (new lines)
-            string[] rows = rs.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string row in rows)
-            {
-                // Split each row by tab characters to get individual fields
-                string[] columns = row.Split('\t');
-
-                if (columns.Length >= 3)
+                if (row.Columns.Count >= 3)
                 {
-                    string categoryName = columns[0].Trim();
-                    string imgType = columns[2].Trim();
+                    string categoryName = row.Columns[1].ToString().Trim();
+                    string imgType = row.Columns[2].ToString().Trim();
 
-                    // Assuming you have a method to retrieve the binary data (image)
-                    byte[]? image = GetBlobAsBytes("image"); 
+                    byte[]? image = row.Columns[3] as byte[];
 
                     categories.Add(new Category(categoryName, imgType, image!));
                 }
@@ -321,5 +308,14 @@ public class Repository : IRepository, IDisposable
 
         return categories;
     }
+}
 
+public class ResultSet
+{
+    public List<Row> Rows { get; set; } = new List<Row>();
+}
+
+public class Row
+{
+    public List<object> Columns { get; set; } = new List<object>();
 }

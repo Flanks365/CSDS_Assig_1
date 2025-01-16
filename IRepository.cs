@@ -2,7 +2,7 @@ using System.IO;
 
 public interface IRepository
 {
-    void Init(string connectString, string user, string password);
+    void Init(string db, string user, string password);
     void Close();
     void Insert(string tableString, string valueString);
     void Insert(string tableString, string setString, string valueString);
@@ -12,5 +12,4 @@ public interface IRepository
     void Delete(string tableString, string conditionString);
     void Select(string fieldString, string tableString, string conditionString);
     void Select(string fieldString, string tableString);
-    byte[]? GetBlobAsBytes(string columnName);
 }
