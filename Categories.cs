@@ -1,24 +1,18 @@
 ﻿namespace CSDS_Assign_1
 {
-    public class Category(String name, String imageType, byte[] image)
+    public class Category
     {
-        private readonly String name = name;
-        private readonly String imageType = imageType;
-        private readonly byte[] image = image;
+        // Properties
+        public string Name { get; private set; }
+        public string ImageType { get; private set; }
+        public byte[] Image { get; private set; }
 
-        public String GetName()
+        // Constructor to initialize properties
+        public Category(string name, string imageType, byte[] image)
         {
-            return name;
-        }
-
-        public String GetImageType()
-        {
-            return imageType;
-        }
-
-        public byte[] GetImage()
-        {
-            return image;
+            Name = name;
+            ImageType = imageType;
+            Image = image;
         }
     }
 }
