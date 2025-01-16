@@ -4,7 +4,8 @@ using System.Data;
 
 public class Repository : IRepository, IDisposable
 {
-    private readonly string databaseIP = "192.168.1.165"; 
+    // CHANGE THESE TO YOUR OWN
+    private readonly string databaseIP = "10.65.44.204"; 
     private readonly string myDatabase = "master";
     private readonly string myUser = "sa";
     private readonly string myPassword = "oracle12";
@@ -17,6 +18,21 @@ public class Repository : IRepository, IDisposable
     {
         con = null;
         rs = new ResultSet();
+    }
+
+    public void Init()
+    {
+        try
+        {
+            string connection = $"Data Source={databaseIP},1433;Initial Catalog={myDatabase};User ID={myUser};Password={myPassword};TrustServerCertificate=true;";
+            con = new SqlConnection(connection);
+            con.Open();
+            Console.WriteLine("Connection established.");
+        }
+        catch (SqlException ex)
+        {
+            PrintSqlException(ex);
+        }
     }
 
     public void Init(string db, string user, string password)
@@ -49,6 +65,7 @@ public class Repository : IRepository, IDisposable
 
     public void Insert(string tableString, string valueString)
     {
+        Init();
         try
         {
             string query = $"INSERT INTO {tableString} VALUES ({valueString})";
@@ -63,10 +80,12 @@ public class Repository : IRepository, IDisposable
         {
             PrintSqlException(ex);
         }
+        Close();
     }
 
     public void Insert(string tableString, string setString, string valueString)
     {
+        Init();
         try
         {
             string query = $"INSERT INTO {tableString} ({setString}) VALUES ({valueString})";
@@ -81,10 +100,12 @@ public class Repository : IRepository, IDisposable
         {
             PrintSqlException(ex);
         }
+        Close();
     }
 
     public void Insert(string tableString, string setString, string valueString, string type, Stream inputStream)
     {
+        Init();
         try
         {
             string query = $"INSERT INTO {tableString} ({setString}) VALUES ({valueString})";
@@ -105,10 +126,12 @@ public class Repository : IRepository, IDisposable
         {
             PrintSqlException(ex);
         }
+        Close();
     }
 
     public void Update(string tableString, string setString, string conditionString)
     {
+        Init();
         try
         {
             string query = $"UPDATE {tableString} SET {setString} WHERE {conditionString}";
@@ -123,10 +146,12 @@ public class Repository : IRepository, IDisposable
         {
             PrintSqlException(ex);
         }
+        Close();
     }
 
     public void Update(string tableString, string setString, Stream inputStream)
     {
+        Init();
         try
         {
             string query = $"UPDATE {tableString} SET {setString}";
@@ -147,10 +172,12 @@ public class Repository : IRepository, IDisposable
         {
             PrintSqlException(ex);
         }
+        Close();
     }
 
     public void Delete(string tableString, string conditionString)
     {
+        Init();
         try
         {
             string query = $"DELETE FROM {tableString} WHERE {conditionString}";
@@ -165,10 +192,12 @@ public class Repository : IRepository, IDisposable
         {
             PrintSqlException(ex);
         }
+        Close();
     }
 
     public void Select(string fieldString, string tableString, string conditionString)
     {
+        Init();
         try
         {
             string query = $"SELECT {fieldString} FROM {tableString} WHERE {conditionString}";
@@ -208,10 +237,12 @@ public class Repository : IRepository, IDisposable
         {
             PrintSqlException(ex);
         }
+        Close();
     }
 
     public void Select(string fieldString, string tableString)
     {
+        Init();
         try
         {
             string query = $"SELECT {fieldString} FROM {tableString}";
@@ -251,6 +282,7 @@ public class Repository : IRepository, IDisposable
         {
             PrintSqlException(ex);
         }
+        Close();
     }
 
     private static byte[] ReadStreamAsBytes(Stream stream)
@@ -282,7 +314,7 @@ public class Repository : IRepository, IDisposable
     public List<Category> GetCategories()
     {
         List<Category> categories = new List<Category>();
-        Init(myDatabase, myUser, myPassword);
+        
         Select("*", "categories");
 
         try
@@ -305,7 +337,6 @@ public class Repository : IRepository, IDisposable
         {
             Console.WriteLine("Error while parsing categories: " + ex.Message);
         }
-
         return categories;
     }
 }
