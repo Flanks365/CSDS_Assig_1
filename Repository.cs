@@ -2,6 +2,10 @@ using CSDS_Assign_1;
 using Microsoft.Data.SqlClient;
 using System.Data;
 
+/// <summary>
+/// Provides methods for database operations, including CRUD operations and connection management.
+/// Implements IDisposable to handle resource cleanup.
+/// </summary>
 public class Repository : IRepository, IDisposable
 {
     // CHANGE THESE TO YOUR OWN
@@ -14,12 +18,19 @@ public class Repository : IRepository, IDisposable
     private SqlConnection? con;
     public ResultSet rs;
 
+    /// <summary>
+    /// Initializes a new instance of the Repository class.
+    /// Sets up the connection object and result set container.
+    /// </summary>
     public Repository()
     {
         con = null;
         rs = new ResultSet();
     }
 
+    /// <summary>
+    /// Initializes the database connection using predefined credentials.
+    /// </summary>
     public void Init()
     {
         try
@@ -35,6 +46,12 @@ public class Repository : IRepository, IDisposable
         }
     }
 
+    /// <summary>
+    /// Initializes the database connection using custom credentials.
+    /// </summary>
+    /// <param name="db">Database name</param>
+    /// <param name="user">Username</param>
+    /// <param name="password">Password</param>
     public void Init(string db, string user, string password)
     {
         try
@@ -50,6 +67,9 @@ public class Repository : IRepository, IDisposable
         }
     }
 
+    /// <summary>
+    /// Closes the database connection.
+    /// </summary>
     public void Close()
     {
         try
@@ -63,6 +83,11 @@ public class Repository : IRepository, IDisposable
         }
     }
 
+    /// <summary>
+    /// Inserts a row into a table with specified values.
+    /// </summary>
+    /// <param name="tableString">Table name</param>
+    /// <param name="valueString">Values to insert</param>
     public void Insert(string tableString, string valueString)
     {
         Init();
@@ -83,6 +108,12 @@ public class Repository : IRepository, IDisposable
         Close();
     }
 
+    /// <summary>
+    /// Inserts a row into a table with specified columns and values.
+    /// </summary>
+    /// <param name="tableString">Table name</param>
+    /// <param name="setString">Columns</param>
+    /// <param name="valueString">Values</param>
     public void Insert(string tableString, string setString, string valueString)
     {
         Init();
@@ -103,6 +134,14 @@ public class Repository : IRepository, IDisposable
         Close();
     }
 
+    /// <summary>
+    /// Inserts a row into a table with binary data, such as blobs.
+    /// </summary>
+    /// <param name="tableString">Table name</param>
+    /// <param name="setString">Columns</param>
+    /// <param name="valueString">Values</param>
+    /// <param name="type">Type of binary data (e.g., blob)</param>
+    /// <param name="inputStream">Stream containing binary data</param>
     public void Insert(string tableString, string setString, string valueString, string type, Stream inputStream)
     {
         Init();
@@ -129,6 +168,12 @@ public class Repository : IRepository, IDisposable
         Close();
     }
 
+    /// <summary>
+    /// Updates rows in a table based on a condition.
+    /// </summary>
+    /// <param name="tableString">Table name</param>
+    /// <param name="setString">Update expression</param>
+    /// <param name="conditionString">Condition for updating rows</param>
     public void Update(string tableString, string setString, string conditionString)
     {
         Init();
@@ -149,6 +194,12 @@ public class Repository : IRepository, IDisposable
         Close();
     }
 
+    /// <summary>
+    /// Updates rows in a table based on a binary data stream.
+    /// </summary>
+    /// <param name="tableString">Table name</param>
+    /// <param name="setString">Update expression</param>
+    /// <param name="inputStream">Stream containing binary data</param>
     public void Update(string tableString, string setString, Stream inputStream)
     {
         Init();
@@ -175,6 +226,12 @@ public class Repository : IRepository, IDisposable
         Close();
     }
 
+
+    /// <summary>
+    /// Deletes rows in a table based on a specified condition.
+    /// </summary>
+    /// <param name="tableString">Table name</param>
+    /// <param name="conditionString">Condition for deleting rows</param>
     public void Delete(string tableString, string conditionString)
     {
         Init();
@@ -195,6 +252,13 @@ public class Repository : IRepository, IDisposable
         Close();
     }
 
+
+    /// <summary>
+    /// Selects rows from a table based on a specified condition.
+    /// </summary>
+    /// <param name="fieldString">Fields to select</param>
+    /// <param name="tableString">Table name</param>
+    /// <param name="conditionString">Condition for selecting rows</param>
     public void Select(string fieldString, string tableString, string conditionString)
     {
         Init();
@@ -240,6 +304,11 @@ public class Repository : IRepository, IDisposable
         Close();
     }
 
+    /// <summary>
+    /// Selects rows from a table without any condition.
+    /// </summary>
+    /// <param name="fieldString">Fields to select</param>
+    /// <param name="tableString">Table name</param>
     public void Select(string fieldString, string tableString)
     {
         Init();
@@ -285,6 +354,11 @@ public class Repository : IRepository, IDisposable
         Close();
     }
 
+    /// <summary>
+    /// Reads a binary stream and converts it into a byte array.
+    /// </summary>
+    /// <param name="stream">The input stream</param>
+    /// <returns>Byte array of the stream's data</returns>
     private static byte[] ReadStreamAsBytes(Stream stream)
     {
         using (MemoryStream ms = new MemoryStream())
@@ -294,6 +368,10 @@ public class Repository : IRepository, IDisposable
         }
     }
 
+    /// <summary>
+    /// Logs details of a caught SqlException.
+    /// </summary>
+    /// <param name="ex">The SqlException to log</param>
     private static void PrintSqlException(SqlException? ex)
     {
         while (ex != null)
@@ -306,11 +384,18 @@ public class Repository : IRepository, IDisposable
         }
     }
 
+    /// <summary>
+    /// Releases the resources used by the repository.
+    /// </summary>
     public void Dispose()
     {
         con?.Dispose();
     }
 
+    /// <summary>
+    /// Retrieves a list of categories from the "categories" table.
+    /// </summary>
+    /// <returns>List of categories</returns>
     public List<Category> GetCategories()
     {
         List<Category> categories = new List<Category>();
@@ -341,11 +426,17 @@ public class Repository : IRepository, IDisposable
     }
 }
 
+/// <summary>
+/// Represents the result set of a database query, containing a collection of rows.
+/// </summary>
 public class ResultSet
 {
     public List<Row> Rows { get; set; } = new List<Row>();
 }
 
+/// <summary>
+/// Represents a single row in a database query result, containing a collection of column values.
+/// </summary>
 public class Row
 {
     public List<object> Columns { get; set; } = new List<object>();
