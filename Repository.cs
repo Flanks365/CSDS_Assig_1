@@ -4,10 +4,11 @@ using System.Data;
 
 public class Repository : IRepository, IDisposable
 {
-    private readonly string databaseIP = "192.168.1.165"; 
-    private readonly string myDatabase = "master";
+    private readonly string databaseIP = "127.0.0.1";
+    private readonly string databasePort = "1434";
+    private readonly string myDatabase = "Test";
     private readonly string myUser = "sa";
-    private readonly string myPassword = "oracle12";
+    private readonly string myPassword = "oracle";
 
 
     private SqlConnection? con;
@@ -23,7 +24,7 @@ public class Repository : IRepository, IDisposable
     {
         try
         {
-            string connection = $"Data Source={databaseIP},1433;Initial Catalog={db};User ID={user};Password={password};TrustServerCertificate=true;";
+            string connection = $"Data Source={databaseIP},{databasePort};Initial Catalog={db};User ID={user};Password={password};TrustServerCertificate=true;";
             con = new SqlConnection(connection);
             con.Open();
             Console.WriteLine("Connection established.");
