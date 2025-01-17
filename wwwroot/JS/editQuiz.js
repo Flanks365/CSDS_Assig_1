@@ -1,310 +1,144 @@
+// Initialize variables
 var quizId = 0;
 var createDiv = 0;
 var editQuiz = 0;
 let output2 = " ";
 
-// // Set up new question form
+// Wait for DOM to load before executing
 document.addEventListener('DOMContentLoaded', function () {
+    // Hide the quiz creation form initially
     createDiv = document.getElementById('create-quiz-container');
     createDiv.querySelector('#create-quiz-form').style.display = 'none';
 
+    // Event listener to toggle form visibility
     createDiv.querySelector('#quiz-create-button').addEventListener('click', toggleForm);
 
-
+    // Handle quiz creation form submission
     createDiv.querySelector("#create-quiz-form").addEventListener('submit', function (event) {
         event.preventDefault();
-
-
         const formData = new FormData(this);
 
-        fetch("../editQuizzes", {
+        // Send form data to server to create the quiz
+        fetch("../postQuizzes", {
             method: "POST",
             body: formData
         }).then(response => {
-            if (response.ok) {
-                return
-            }
+            if (response.ok) return;
             throw new Error('Fetch delete failed.');
         }).then(() => {
-            location.reload();
-        })
-    })
+            location.reload(); // Reload page after successful creation
+        });
+    });
+});
 
-
-
-})
-
+// Fetch quiz data when page loads
 window.onload = fetchQuizData;
 
+// Function to fetch quizzes and display them
 function fetchQuizData() {
-    fetch("../editQuizzes")
-        .then(response => {
-            console.log(response)
-            return response.json()
-        })
+    fetch("../getQuizzes")
+        .then(response => response.json())
         .then(data => {
             console.log(data);
+
             let output = '';
-
             data.forEach(item => {
-                const message = item.name;
-                const number = item.sid;
+                const message = item.Name;
+                const number = item.Id;
+                quizId = item.Id;
 
-                quizId = item.sid;
+                console.log('Item:', item);
+                console.log('Name:', message, 'ID:', number, 'SID:', item.Id);
 
-                console.log('Message: ', message, ', Number: ', number);
+                // Generate HTML output for each quiz
+                output += `
+                    <div class="container">
+                        <h1>${message}</h1>
+                        <div class="edit-quiz-container">
+                            <form class="quiz-edit-form" id="edit-${number}" enctype="multipart/form-data">
+                                <input type="hidden" name="id" value="${number}" />
+                                <input type="hidden" name="quizName" value="${message}" />
+                                <input required id="new-quiz-name" type="text" name="QuizName" value="${message}" placeholder="Name" />
+                                Image <input required type="file" name="FileName" accept="image/*" />
+                                <button type="button" id="${number}" onclick="submitUpdateQuiz(this.id)">Submit</button>
+                            </form>
+                            <button class="quiz-select-button">Edit Questions</button>
+                            <button class="quiz-delete-button" id="${number}" onclick="deleteQuiz(this.id)">Delete</button>
+                            <button class="quiz-edit-button">Edit</button>
+                        </div>
+                    </div>`;
 
+            });
 
-
-                output += "<div class=\"container\"><h1>" +
-                    message + "</h1>" +
-                    "<div class=\"edit-quiz-container\">" +
-                    "<form class=\"quiz-edit-form\" id=\"edit-" + number + "\" enctype=\"multipart/form-data\">" +
-                    "<input type=\"hidden\" name=\"id\" value=\"" + number + "\"/>" +
-                    "<input type=\"hidden\" name=\"quizName\" value=\"" + message + "\"/>" +
-                    "<input required id=\"new-quiz-name\" type=\"text\" name=\"QuizName\" " +
-                    "value=\"" + message + "\" placeholder=\"Name\" />" +
-                    "Image <input required type=\"file\" name=\"FileName\" accept=\"image/*\" />" +
-                    "<button type=\"button\" id=\"" + number + "\" onclick=\"submitUpdateQuiz(this.id)\">Submit</button>" + // Updated button
-                    "</form>" +
-                    "<button class=\"quiz-select-button\">Edit Questions</button>" +
-                    "<button class=\"quiz-delete-button\" id=\"" + number + "\" onclick=\"deleteQuiz(this.id)\">Delete</button>" +
-                    "<button class=\"quiz-edit-button\">Edit</button>" +
-                    "</div></div>\n";
-
-            })
-
+            // Insert output into the DOM
             document.getElementById("test").innerHTML = output;
 
+            // Set up listeners for "Edit Questions" buttons
             document.querySelectorAll(".quiz-select-button").forEach(Select => {
                 Select.addEventListener('click', function (event) {
                     event.preventDefault();
+                    handleQuizSelection(event, Select);
+                });
+            });
 
-                    let output = '';
+            // Hide all quiz edit forms initially
+            document.querySelectorAll(".quiz-edit-form").forEach(form => form.style.display = 'none');
 
-                    document.getElementById('back-button').innerHTML = 'Back to Edit Quizzes'
-                    document.getElementById('back-button').onclick = function() {
-                        location.reload()
-                    }
-
-                    const mainDiv = document.querySelector("#mainDiv");
-
-
-                    const container = Select.closest('.edit-quiz-container');
-                    const formData = new FormData();
-
-                    const quizId = container.querySelector('input[name="id"]').value;
-                    const quizName = container.querySelector('input[name="quizName"]').value;
-
-                    console.log(quizId);
-                    console.log(quizName);
-
-                    output += "<div><h2>Edit " + quizName + "</h2>" +
-                        "<button class=\"question-add-button\" id=\"form-toggle\" onclick=\"toggleNewForm()\">Add Question</button>" +
-                        "</div>" + "<form id=\"new-question-form\" style=\"display: none;\">" +
-                        "<input type=\"hidden\" name=\"id\" value=\"" + quizId + "\" />" +
-                        "<input type=\"hidden\" name=\"quizName\" value=\"" + quizName + "\" />" +
-                        "<input type=\"textarea\" name=\"Question\" placeholder=\"Question\" required />" +
-                        "<input type=\"textarea\" name=\"Answer\" placeholder=\"Answer\" required />" +
-                        "<input type=\"textarea\" name=\"Decoy1\" placeholder=\"Decoy answer\" required />" +
-                        "<input type=\"textarea\" name=\"Decoy2\" placeholder=\"Decoy answer (optional)\" />" +
-                        "<input type=\"textarea\" name=\"Decoy3\" placeholder=\"Decoy answer (optional)\" /><br>" +
-                        "Content type: <input type=\"radio\" id=\"content-quote\" name=\"ContentType\" value=\"quote\">" +
-                        "<label for=\"content-quote\">Quote</label>" +
-                        "<input type=\"radio\" id=\"content-image\" name=\"ContentType\" value=\"image\">" +
-                        "<label for=\"content-image\">Image</label>" +
-                        "<input type=\"radio\" id=\"content-audio\" name=\"ContentType\" value=\"audio\">" +
-                        "<label for=\"content-audio\">Audio</label>" +
-                        "<input type=\"radio\" id=\"content-video\" name=\"ContentType\" value=\"video\">" +
-                        "<label for=\"content-video\">Video</label><br>" +
-                        "Content: " +
-                        "<input class=\"file-input\" type=\"file\" name=\"FileName\" />" +
-                        "<input class=\"quote-input\" type=\"text\" name=\"QuoteText\" placeholder=\"Quote\" required />" +
-                        "<br><button type=\"button\" onclick=\"submitFormData()\">Submit</button>" +
-                        "</form><div id=\"target\"> target </div>";
-
-
-                    mainDiv.innerHTML = output;
-
-                    formData.append('id', quizId);
-                    formData.append('quizName', quizName);
-
-                    const queryString = new URLSearchParams(formData).toString();
-
-                    fetch(`../editQuestions?${queryString}`, {
-                        method: 'GET'
-                    }).then(response => {
-                        console.log(response);
-                        if (response.ok) {
-                            return response.json();
-                        }
-                        throw new Error('fetch failed');
-                    })
-                        .then(data => {
-                            console.log(data);
-
-                            if (data === null) { // Check if data is null
-                                console.log('No data received, stopping execution.');
-                                return; // Stop further execution if data is null
-                            }
-
-                            data.forEach(quest => {
-
-                                const questId = quest.sid;
-
-                                const corr = quest.corrAns;
-                                const dec1 = quest.decAns1;
-                                const dec2 = quest.decAns2;
-                                const dec3 = quest.decAns3;
-
-                                const mediaTyp = quest.media_type;
-                                const mediaPrev = quest.media_preview;
-
-                                const question = quest.question;
-
-                                output2 += "<div class=\"questions-div\"><h2>" + question + "</h2>" +
-                                    "<div id=\"edit-question-" + quizId + "\" class=\"question-edit-container\" " +
-                                    "questionId=\"" + questId + "\">" + question +
-                                    "<form class=\"question-edit-form\" id=\"edit-form-" + questId
-                                    + "\" style=\"display: none\;\">" +
-                                    "<input type=\"hidden\" name=\"id\" value=\"" + quizId + "\" />" +
-                                    "<input type=\"hidden\" name=\"quizName\" value=\"" + quizName + "\" />" +
-                                    "<input type=\"hidden\" name=\"questionId\" value=\"" + questId + "\" />" +
-                                    "<input type=\"textarea\" name=\"Question\" placeholder=\"Question text\" " +
-                                    "value=\"" + question + "\" required />" +
-                                    "<input type=\"textarea\" name=\"Answer\" placeholder=\"Answer\" " +
-                                    "value=\"" + corr + "\" required />" +
-                                    "<input type=\"textarea\" name=\"Decoy1\" placeholder=\"Decoy answer\" " +
-                                    "value=\"" + dec1 + "\" required />" +
-                                    "<input type=\"textarea\" name=\"Decoy2\" placeholder=\"Decoy answer (optional)\" " +
-                                    "value=\"" + dec2 + "\" />" +
-                                    "<input type=\"textarea\" name=\"Decoy3\" placeholder=\"Decoy answer (optional)\" " +
-                                    "value=\"" + dec3 + "\" /><br>" +
-                                    "Content type: " +
-                                    "<input type=\"hidden\" name=\"selectedContent\" value=\"" + mediaTyp + "\" />" +
-                                    "<input type=\"radio\" class=\"radio-default\" id=\"content-quote\" name=\"ContentType\" value=\"quote\">"
-                                    +
-                                    "<label for=\"content-quote\">Quote</label>" +
-                                    "<input type=\"radio\" id=\"content-image\" name=\"ContentType\" value=\"image\">" +
-                                    "<label for=\"content-image\">Image</label>" +
-                                    "<input type=\"radio\" id=\"content-audio\" name=\"ContentType\" value=\"audio\">" +
-                                    "<label for=\"content-audio\">Audio</label>" +
-                                    "<input type=\"radio\" id=\"content-video\" name=\"ContentType\" value=\"video\">" +
-                                    "<label for=\"content-video\">Video</label><br>" +
-                                    "Content: " +
-                                    "<p>Current: " + mediaPrev + "</p>" +
-                                    "<input class=\"file-input\" type=\"file\" name=\"FileName\" />" +
-                                    "<input class=\"quote-input\" type=\"text\" name=\"QuoteText\" placeholder=\"Quote\" />" +
-                                    "<br><button id=\"" + questId + "\" onclick=\"submitUpdateData(this.id)\">Submit</button>" +
-                                    "</form>" +
-                                    "<button class=\"question-edit-toggle\" id=\"" + questId + "\" onclick=\"toggleEditsForm(this.id)\">Edit</button>" +
-                                    "<button class=\"question-delete\" id=\"" + questId + "\" onclick=\"deleteQuestionData(this.id)\">Delete</button><br>" +
-                                    "</div>";
-
-
-                            })
-
-                            document.querySelector("#target").innerHTML = output2;
-
-
-
-
-                        })
-                        .catch(error => {
-                            console.error('Error: ', error);
-                            alert('error fetching questions');
-                        })
-                })
-            })
-
-            document.querySelectorAll(".quiz-edit-form").forEach(form => {
-                form.style.display = 'none';
-            })
-
+            // Set up listeners for "Edit" buttons
             document.querySelectorAll('.quiz-edit-button').forEach(button => {
                 button.addEventListener('click', toggleEditForm);
-            })
-
-
-
-
-
-
-            var deleteButton = document.querySelectorAll('.quiz-delete-button');
-
+            });
         })
-        .catch(error => console.error('error Fetching Json: ', error))
+        .catch(error => console.error('Error fetching quizzes:', error));
 }
 
+// Handle the deletion of a quiz
 function deleteQuiz(buttonId) {
     const url = '/trivia/editQuizzes?id=' + buttonId;
 
-    fetch(url, {
-        method: 'DELETE'
-    })
+    fetch(url, { method: 'DELETE' })
         .then(response => {
-            if (response.ok) {
-                return
-            }
+            if (response.ok) return;
             throw new Error('Fetch delete failed.');
         })
-        .then(() => {
-            location.reload();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        .then(() => location.reload()) // Reload page after successful deletion
+        .catch(error => console.error('Error:', error));
 }
 
-
+// Handle the deletion of a question
 function deleteQuestionData(buttonId) {
     const quizId = buttonId;
-
-    console.log(quizId);
-
-
-
-    // Get the form associated with this quizId
     const form = document.getElementById(`edit-form-${quizId}`);
-
-    // Create a FormData object from the form
     const formData = new FormData(form);
 
-    // Send the DELETE request
     fetch("../editQuestions", {
         method: 'DELETE',
         body: formData
     })
         .then(response => {
-            if (response.ok) {
-                return
-            }
+            if (response.ok) return;
             throw new Error('Fetch delete failed.');
         })
-        .then(() => {
-            location.reload(); // Reload the page on successful deletion
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        .then(() => location.reload()) // Reload page after deletion
+        .catch(error => console.error('Error:', error));
 }
 
-// Set up delete button
-
-
+// Function to toggle the visibility of the quiz creation form
 function toggleForm(e) {
+    const form = document.getElementById('create-quiz-form');
     if (e.target.innerHTML == "Create") {
-        document.getElementById('create-quiz-form').style.display = '';
+        form.style.display = '';
         e.target.innerHTML = "Cancel";
     } else {
-        document.getElementById('create-quiz-form').style.display = 'none';
+        form.style.display = 'none';
         e.target.innerHTML = "Create";
     }
 };
 
+// Function to toggle the visibility of quiz edit forms
 function toggleEditForm(e) {
     const container = e.target.parentNode;
-    const form = container.querySelector('.quiz-edit-form')
+    const form = container.querySelector('.quiz-edit-form');
     if (e.target.innerHTML == "Edit") {
         form.style.display = '';
         e.target.innerHTML = "Cancel";
@@ -314,32 +148,124 @@ function toggleEditForm(e) {
     }
 };
 
-function toggleNewForm() {
-    const form = document.getElementById('new-question-form');
-    if (form.style.display === 'none') {
-        form.style.display = 'block';
-    } else {
-        form.style.display = 'none';
-    }
-};
+// Function to handle the editing of questions for a quiz
+function handleQuizSelection(event, Select) {
+    let output = '';
+    document.getElementById('back-button').innerHTML = 'Back to Edit Quizzes';
+    document.getElementById('back-button').onclick = () => location.reload();
 
-function toggleEditsForm(buttonId) {
-    // Extract quizId from the buttonId
-    const quizId = buttonId;
+    const mainDiv = document.querySelector("#mainDiv");
+    const container = Select.closest('.edit-quiz-container');
+    const quizId = container.querySelector('input[name="id"]').value;
+    const quizName = container.querySelector('input[name="quizName"]').value;
 
-    console.log(quizId);
-    // Get the form associated with this quizId
-    const form = document.getElementById(`edit-form-${quizId}`);
+    output += `
+        <div><h2>Edit ${quizName}</h2>
+        <button class="question-add-button" id="form-toggle" onclick="toggleNewForm()">Add Question</button>
+        </div>
+        <form id="new-question-form" style="display: none;">
+            <input type="hidden" name="id" value="${quizId}" />
+            <input type="hidden" name="quizName" value="${quizName}" />
+            <input type="textarea" name="Question" placeholder="Question" required />
+            <input type="textarea" name="Answer" placeholder="Answer" required />
+            <input type="textarea" name="Decoy1" placeholder="Decoy answer" required />
+            <input type="textarea" name="Decoy2" placeholder="Decoy answer (optional)" />
+            <input type="textarea" name="Decoy3" placeholder="Decoy answer (optional)" /><br>
+            Content type: <input type="radio" id="content-quote" name="ContentType" value="quote">
+            <label for="content-quote">Quote</label>
+            <input type="radio" id="content-image" name="ContentType" value="image">
+            <label for="content-image">Image</label>
+            <input type="radio" id="content-audio" name="ContentType" value="audio">
+            <label for="content-audio">Audio</label>
+            <input type="radio" id="content-video" name="ContentType" value="video">
+            <label for="content-video">Video</label><br>
+            Content: <input class="file-input" type="file" name="FileName" />
+            <input class="quote-input" type="text" name="QuoteText" placeholder="Quote" required />
+            <br><button type="button" onclick="submitFormData()">Submit</button>
+        </form>
+        <div id="target"> target </div>`;
 
-    // Toggle the display style
-    if (form.style.display === "none" || form.style.display === "") {
-        form.style.display = "block"; // Show the form
-    } else {
-        form.style.display = "none"; // Hide the form
-    }
+    mainDiv.innerHTML = output;
+
+    // Fetch existing questions for the quiz
+    fetchQuizQuestions(quizId, quizName);
 }
 
+// Function to fetch questions for the selected quiz
+function fetchQuizQuestions(quizId, quizName) {
+    const formData = new FormData();
+    formData.append('id', quizId);
+    formData.append('quizName', quizName);
 
+    const queryString = new URLSearchParams(formData).toString();
+
+    fetch(`../editQuestions?${queryString}`, { method: 'GET' })
+        .then(response => response.json())
+        .then(data => {
+            let output2 = '';
+            data.forEach(quest => {
+                const questId = quest.sid;
+                const corr = quest.corrAns;
+                const dec1 = quest.decAns1;
+                const dec2 = quest.decAns2;
+                const dec3 = quest.decAns3;
+                const mediaTyp = quest.media_type;
+                const mediaPrev = quest.media_preview;
+                const question = quest.question;
+
+                output2 += `
+                    <div class="questions-div">
+                        <h2>${question}</h2>
+                        <div id="edit-question-${quizId}" class="question-edit-container" questionId="${questId}">
+                            ${question}
+                            <form class="question-edit-form" id="edit-form-${questId}" style="display: none;">
+                                <input type="hidden" name="id" value="${quizId}" />
+                                <input type="hidden" name="quizName" value="${quizName}" />
+                                <input type="hidden" name="questionId" value="${questId}" />
+                                <input type="textarea" name="Question" placeholder="Question text" value="${question}" required />
+                                <input type="textarea" name="Answer" placeholder="Answer" value="${corr}" required />
+                                <input type="textarea" name="Decoy1" placeholder="Decoy answer" value="${dec1}" required />
+                                <input type="textarea" name="Decoy2" placeholder="Decoy answer (optional)" value="${dec2}" />
+                                <input type="textarea" name="Decoy3" placeholder="Decoy answer (optional)" value="${dec3}" /><br>
+                                Content type: <input type="hidden" name="selectedContent" value="${mediaTyp}" />
+                                <input type="radio" class="radio-default" id="content-quote" name="ContentType" value="quote">
+                                <label for="content-quote">Quote</label>
+                                <input type="radio" id="content-image" name="ContentType" value="image">
+                                <label for="content-image">Image</label>
+                                <input type="radio" id="content-audio" name="ContentType" value="audio">
+                                <label for="content-audio">Audio</label>
+                                <input type="radio" id="content-video" name="ContentType" value="video">
+                                <label for="content-video">Video</label><br>
+                                Content: <p>Current: ${mediaPrev}</p>
+                                <input class="file-input" type="file" name="FileName" />
+                                <input class="quote-input" type="text" name="QuoteText" placeholder="Quote" />
+                                <br><button id="${questId}" onclick="submitUpdateData(this.id)">Submit</button>
+                            </form>
+                            <button class="question-edit-toggle" id="${questId}" onclick="toggleEditsForm(this.id)">Edit</button>
+                            <button class="question-delete" id="${questId}" onclick="deleteQuestionData(this.id)">Delete</button><br>
+                        </div>
+                    </div>`;
+            });
+
+            // Display the questions
+            document.querySelector("#target").innerHTML = output2;
+        })
+        .catch(error => console.error('Error fetching questions:', error));
+}
+
+// Toggle visibility of the new question form
+function toggleNewForm() {
+    const form = document.getElementById('new-question-form');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+// Toggle visibility of question edit forms
+function toggleEditsForm(buttonId) {
+    const form = document.getElementById(`edit-form-${buttonId}`);
+    form.style.display = form.style.display === "none" || form.style.display === "" ? "block" : "none";
+}
+
+// Submit new question form data
 function submitFormData() {
     const form = document.getElementById("new-question-form");
     const formData = new FormData(form);
@@ -349,85 +275,43 @@ function submitFormData() {
         body: formData
     })
         .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return;
+            if (!response.ok) throw new Error('Network response was not ok');
+            location.reload(); // Reload page after successful submission
         })
-        .then(data => {
-            location.reload();
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            // Optionally handle error (e.g., show an error message)
-        });
+        .catch(error => console.error('Error:', error));
 }
 
-
-
-
-
+// Submit quiz update data
 function submitUpdateQuiz(buttonId) {
-    event.preventDefault()
-    
-    const form = document.getElementById(`edit-${buttonId}`); // Get the form associated with the quiz ID
-
-    // Create a FormData object from the form
+    event.preventDefault();
+    const form = document.getElementById(`edit-${buttonId}`);
     const formData = new FormData(form);
 
-    // Send the POST request to ../editQuizzes
     fetch("../editQuizzes", {
         method: 'POST',
         body: formData
     })
         .then(response => {
-            if (!response.ok) {
-                throw new Error('Update failed with status: ' + response.status);
-            }
-            return response.json(); // Assuming you want to handle a JSON response
+            if (!response.ok) throw new Error('Update failed with status: ' + response.status);
+            return response.json();
         })
-        .then(data => {
-            console.log('Update successful:', data);
-            location.reload(); // Reload the page to see changes
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            // Optionally handle error (e.g., show an error message)
-        });
+        .then(() => location.reload()) // Reload after update
+        .catch(error => console.error('Error:', error));
 }
 
-
+// Submit question update data
 function submitUpdateData(buttonId) {
     event.preventDefault();
-    // Use the buttonId to get the form associated with the button
     const form = document.getElementById(`edit-form-${buttonId}`);
-
-    // Create a FormData object from the form
     const formData = new FormData(form);
-
-    for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
-    }
 
     fetch('../editQuestions', {
         method: 'POST',
         body: formData
     })
         .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return  // If you expect a JSON response
+            if (!response.ok) throw new Error('Network response was not ok');
+            location.reload(); // Reload after update
         })
-        .then(data => {
-            // Optionally handle the response data
-            location.reload(); // Reload the page on successful update
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            // Optionally handle error (e.g., show an error message)
-        });
+        .catch(error => console.error('Error:', error));
 }
-
-
-

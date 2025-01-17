@@ -10,12 +10,13 @@ public class Repository : IRepository, IDisposable
 {
     // CHANGE THESE TO YOUR OWN
     private readonly string databaseIP = "127.0.0.1";
-    private readonly string databasePort = "1434"; // 1433 is default
-    private readonly string myDatabase = "Test";
+    private readonly string databasePort = "1433"; // 1433 is default
+    private readonly string myDatabase = "master";
     private readonly string myUser = "sa";
-    private readonly string myPassword = "oracle";
+    private readonly string myPassword = "Oracle12!";
 
-
+    //127.0.0.1
+    //Oracle12!
     private SqlConnection? con;
     public ResultSet rs;
 
@@ -150,10 +151,12 @@ public class Repository : IRepository, IDisposable
         {
             string query = $"INSERT INTO {tableString} ({setString}) VALUES ({valueString})";
             Console.WriteLine(query);
+
             using (SqlCommand stmt = new SqlCommand(query, con))
             {
+                // Add binary data as a parameter
                 byte[] binaryData = ReadStreamAsBytes(inputStream);
-                stmt.Parameters.Add(new SqlParameter(type.Equals("blob", StringComparison.OrdinalIgnoreCase) ? "@blobData" : "@binaryData", SqlDbType.VarBinary)
+                stmt.Parameters.Add(new SqlParameter("@FileData", SqlDbType.VarBinary)
                 {
                     Value = binaryData
                 });
@@ -168,6 +171,7 @@ public class Repository : IRepository, IDisposable
         }
         Close();
     }
+
 
     /// <summary>
     /// Updates rows in a table based on a condition.
@@ -322,24 +326,36 @@ public class Repository : IRepository, IDisposable
             {
                 using (SqlDataReader reader = stmt.ExecuteReader())
                 {
-                    rs.Rows.Clear(); 
+                    rs.Rows.Clear();
 
                     while (reader.Read())
                     {
                         Row row = new Row();
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            if (reader.GetFieldType(i) == typeof(byte[]))  
+                            // Handle byte[] fields
+                            if (reader.GetFieldType(i) == typeof(byte[]))
                             {
                                 row.Columns.Add(reader.GetValue(i));
                             }
+                            // Handle Guid fields
                             else if (reader.GetFieldType(i) == typeof(Guid))
                             {
-                                row.Columns.Add(reader.GetGuid(i).ToString()); 
+                                row.Columns.Add(reader.GetGuid(i).ToString());
                             }
-                            else  
+                            // Handle integer fields (e.g., 'id')
+                            else if (reader.GetFieldType(i) == typeof(int))
+                            {
+                                row.Columns.Add(reader.GetInt32(i)); // Directly get the integer value
+                            }
+                            // Handle string fields
+                            else if (reader.GetFieldType(i) == typeof(string))
                             {
                                 row.Columns.Add(reader.GetString(i));
+                            }
+                            else
+                            {
+                                row.Columns.Add(reader.GetValue(i)); // Default case for other types
                             }
                         }
                         rs.Rows.Add(row);
@@ -354,6 +370,7 @@ public class Repository : IRepository, IDisposable
         }
         Close();
     }
+
 
     /// <summary>
     /// Reads a binary stream and converts it into a byte array.
@@ -400,22 +417,26 @@ public class Repository : IRepository, IDisposable
     public List<Category> GetCategories()
     {
         List<Category> categories = new List<Category>();
-        
+    
         Select("*", "categories");
 
         try
         {
-
             foreach (var row in rs.Rows)
             {
                 if (row.Columns.Count >= 3)
                 {
-                    string id = row.Columns[0].ToString().Trim();
+                    
+                    
+                    // Directly cast the 'id' column to int (as it's an int in the database)
+                    int id = Convert.ToInt32(row.Columns[0]);
+
                     string categoryName = row.Columns[1].ToString().Trim();
                     string imgType = row.Columns[2].ToString().Trim();
 
                     byte[]? image = row.Columns[3] as byte[];
 
+                    // Create a new Category with the int id
                     categories.Add(new Category(id, categoryName, imgType, image!));
                 }
             }
@@ -426,6 +447,7 @@ public class Repository : IRepository, IDisposable
         }
         return categories;
     }
+
 
     public List<Question> GetQuestions(string categoryId)
     {
