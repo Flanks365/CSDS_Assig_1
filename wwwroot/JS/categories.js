@@ -1,7 +1,7 @@
 ﻿// Async function to fetch data from the server
 async function fetchData() {
     try {
-        const response = await fetch('http://localhost/categoriesFromDB');
+        const response = await fetch(window.location.origin + '/categoriesFromDB');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -59,6 +59,11 @@ async function generateCategoryCards() {
         hiddenCategoryName1.name = "category_name";
         hiddenCategoryName1.value = category.name;
 
+        const hiddenCategoryId1 = document.createElement("input");
+        hiddenCategoryId1.type = "hidden";
+        hiddenCategoryId1.name = "category_id";
+        hiddenCategoryId1.value = category.id;
+
         const hiddenAutoplay1 = document.createElement("input");
         hiddenAutoplay1.type = "hidden";
         hiddenAutoplay1.name = "autoplay";
@@ -69,6 +74,7 @@ async function generateCategoryCards() {
         submitPlay.value = "Play Quiz";
 
         formPlay.appendChild(hiddenCategoryName1);
+        formPlay.appendChild(hiddenCategoryId1);
         formPlay.appendChild(hiddenAutoplay1);
         formPlay.appendChild(submitPlay);
 
@@ -85,6 +91,11 @@ async function generateCategoryCards() {
         hiddenCategoryName2.name = "category_name";
         hiddenCategoryName2.value = category.name;
 
+        const hiddenCategoryId2 = document.createElement("input");
+        hiddenCategoryId2.type = "hidden";
+        hiddenCategoryId2.name = "category_id";
+        hiddenCategoryId2.value = category.id;
+
         const hiddenAutoplay2 = document.createElement("input");
         hiddenAutoplay2.type = "hidden";
         hiddenAutoplay2.name = "autoplay";
@@ -95,6 +106,7 @@ async function generateCategoryCards() {
         submitAutoplay.value = "Autoplay Quiz";
 
         formAutoplay.appendChild(hiddenCategoryName2);
+        formAutoplay.appendChild(hiddenCategoryId2);
         formAutoplay.appendChild(hiddenAutoplay2);
         formAutoplay.appendChild(submitAutoplay);
 

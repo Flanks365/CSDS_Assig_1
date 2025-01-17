@@ -67,14 +67,16 @@ namespace CSDS_Assign_1.Controllers
         /// <param name="autoplay">A flag to enable or disable autoplay (optional).</param>
         /// <returns>An IActionResult containing the QuizPage HTML file.</returns>
         [HttpGet("QuizPage")]
-        public IActionResult QuizPage(string? category_name = null, bool? autoplay = null)
+        public IActionResult QuizPage(string? category_name = null, string? category_id = null, bool ? autoplay = null)
         {
             // Log the query parameters for debugging purposes
             Console.WriteLine($"Category Name: {category_name}");
+            Console.WriteLine($"Category Name: {category_id}");
             Console.WriteLine($"Autoplay: {autoplay}");
 
             // Add logic to handle query parameters if needed
             // For example, pass these values to the frontend via JavaScript or process them server-side
+
 
             return GetHtmlFile("quizPage");
         }

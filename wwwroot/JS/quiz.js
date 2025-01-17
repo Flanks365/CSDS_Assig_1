@@ -1,4 +1,4 @@
-// "use strict";
+//// "use strict";
 
 const answers = []
 const answerCounts = {}
@@ -73,9 +73,7 @@ Chat.initialize = function () {
     })
     console.log(answers)
 
-
-
-    // const quizData = {}
+    //const quizData = {}
     quizData.dataType = "newQuestion"
     quizData.message = questionText
     quizData.answers = answers
@@ -103,10 +101,10 @@ Chat.initialize = function () {
 
 
 if (document.readyState !== 'loading') {
-    Chat.initialize();
+    //Chat.initialize();
 } else {
     document.addEventListener("DOMContentLoaded", function () {
-        Chat.initialize();
+        //Chat.initialize();
     }, false);
 }
 
@@ -154,7 +152,7 @@ function toggleButtonsDisabled(buttons) {
 }
 
 window.addEventListener('load', () => {
-    const autoplay = document.getElementById('autoplay').value;
+    const { categoryName, autoplay } = initializePageContent();
     const correctAnswerID = document.getElementById('autoplayCorrectAnswer').value;
     const questionInfo = document.getElementById('questionInfo');
     if (autoplay == 'true') {
@@ -183,6 +181,14 @@ window.addEventListener('load', () => {
         }
     }
 })
+
+function initializePageContent() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoryName = urlParams.get('category_name');
+    const autoplay = urlParams.get('autoplay') === 'true';
+    document.getElementById("quiz-prompt").innerHTML = "Quiz: " + categoryName;
+    return { categoryName, autoplay };
+}
 
 
 function setAnswerCounts(show) {
@@ -246,4 +252,3 @@ function resendQuestion() {
     quizData.dataType = 'resendQuestion'
     Chat.socket.send(JSON.stringify(quizData))
 }
-
