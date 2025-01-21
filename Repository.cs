@@ -10,8 +10,8 @@ public class Repository : IRepository, IDisposable
 {
     // CHANGE THESE TO YOUR OWN
     private readonly string databaseIP = "127.0.0.1";
-    private readonly string databasePort = "1434"; // 1433 is default
-    private readonly string myDatabase = "QuizApp";
+    private readonly string databasePort = "1433"; // 1433 is default
+    private readonly string myDatabase = "master";
     private readonly string myUser = "sa";
     private readonly string myPassword = "Oracle12!";
 
@@ -441,7 +441,7 @@ public class Repository : IRepository, IDisposable
         }
         Close();
     }
-
+    
 
     /// <summary>
     /// Reads a binary stream and converts it into a byte array.

@@ -190,6 +190,31 @@ namespace CSDS_Assign_1.Controllers
             return GetHtmlFile("editQuizzes");
         }
         
+        [HttpGet("getQuestions")]
+        public IActionResult GetQuestions([FromQuery] int id, [FromQuery] string quizName)
+        {
+            try
+            {
+                // Query the database to get the questions for the given quizId
+                var questions = _repository.GetQuestions(id.ToString()); // Adjust with your actual repository and method
+                
+                if (questions == null || !questions.Any())
+                {
+                    return NotFound("No questions found.");
+                }
+                
+                // Return the data as JSON
+                return Ok(questions);
+            }
+            catch (Exception ex)
+            {
+                // Handle any errors
+                Console.WriteLine("Error fetching questions: " + ex.Message);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        
         
 
 

@@ -215,11 +215,13 @@ function fetchQuizQuestions(quizId, quizName) {
 
     const queryString = new URLSearchParams(formData).toString();
 
-    fetch(`../editQuestions?${queryString}`, { method: 'GET' })
+    fetch("getQuestions", { method: 'GET', body: formData })
         .then(response => response.json())
         .then(data => {
             let output2 = '';
             data.forEach(quest => {
+                quest = JSON.parse(quest);
+                console.log(quest);
                 const questId = quest.sid;
                 const corr = quest.corrAns;
                 const dec1 = quest.decAns1;
