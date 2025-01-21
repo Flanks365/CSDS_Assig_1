@@ -1,15 +1,32 @@
 //// "use strict";
 
+const questions = [];
+const currQuestion = 0;
 const answers = []
 const answerCounts = {}
 const quizData = {}
 var showCounts = true;
+var Chat = {};
+Chat.socket = null;
 
 console.log('test')
 
-var Chat = {};
+if (document.readyState !== 'loading') {
+    //Chat.initialize();
+} else {
+    //document.addEventListener("DOMContentLoaded", function () {
+    //    //Chat.initialize();
+    //}, false);
+    //document.addEventListener("DOMContentLoaded", () => { initializePage() });
+}
 
-Chat.socket = null;
+window.addEventListener('load', () => {
+    initializePage();
+    if (isAutoplay() == 'true') {
+        setAutoplay();
+    }
+})
+
 
 Chat.connect = (function (host) {
     if ('WebSocket' in window) {
@@ -45,7 +62,7 @@ Chat.connect = (function (host) {
             if (parsedMessage.dataType == 'join')
                 resendQuestion()
             if (parsedMessage.dataType == 'disconnect')
-                removeAnswer(parsedMessage)
+                removePlayerAnswer(parsedMessage)
         } catch (e) {
             console.log("Failed to parse message details: " + e);
             console.log("Message: " + message.data)
@@ -100,15 +117,11 @@ Chat.initialize = function () {
 };
 
 
-if (document.readyState !== 'loading') {
-    //Chat.initialize();
-} else {
-    document.addEventListener("DOMContentLoaded", function () {
-        //Chat.initialize();
-    }, false);
+function initializePage() {
+    console.log('init test')
+    getQuestions();
+    initializePageContent();
 }
-
-console.log('test')
 
 
 function selectAnswer(element, categoryName, answerId, questionId, autoplay, currentIndex) {
@@ -145,49 +158,55 @@ function selectAnswer(element, categoryName, answerId, questionId, autoplay, cur
         .catch(error => console.error('Error checking the answer:', error))
 }
 
+
 function toggleButtonsDisabled(buttons) {
     buttons.forEach(button => {
         button.querySelector('button').disabled = !button.querySelector('button').disabled
     })
 }
 
-window.addEventListener('load', () => {
-    const { categoryName, autoplay } = initializePageContent();
+
+function setAutoplay() {
     const correctAnswerID = document.getElementById('autoplayCorrectAnswer').value;
     const questionInfo = document.getElementById('questionInfo');
-    if (autoplay == 'true') {
-        let corrButton = document.getElementById(correctAnswerID);
-        let secondsRemaining = 10
+    let corrButton = document.getElementById(correctAnswerID);
+    let secondsRemaining = 10
+    questionInfo.innerHTML = "Time left: " + secondsRemaining
+    const myInterval = setInterval(() => {
+        secondsRemaining--
         questionInfo.innerHTML = "Time left: " + secondsRemaining
-        const myInterval = setInterval(() => {
-            secondsRemaining--
-            questionInfo.innerHTML = "Time left: " + secondsRemaining
-            if (!secondsRemaining) {
-                const message = { dataType: 'hostAnswered', message: 'Correct answer: ' + corrButton.innerHTML, selection: correctAnswerID }
-                console.log(message)
-                Chat.socket.send(JSON.stringify(message))
-                startAnimation()
-            }
-        }, 1000)
-        function startAnimation() {
-            corrButton.classList.add('animation')
-            clearInterval(myInterval)
-            setTimeout(() => {
-                corrButton.classList.remove('animation')
-                corrButton.disabled = false
-                corrButton.classList.add('correctButton')
-                corrButton.click()
-            }, 3500)
+        if (!secondsRemaining) {
+            const message = { dataType: 'hostAnswered', message: 'Correct answer: ' + corrButton.innerHTML, selection: correctAnswerID }
+            console.log(message)
+            Chat.socket.send(JSON.stringify(message))
+            startAnimation()
         }
+    }, 1000)
+    function startAnimation() {
+        corrButton.classList.add('animation')
+        clearInterval(myInterval)
+        setTimeout(() => {
+            corrButton.classList.remove('animation')
+            corrButton.disabled = false
+            corrButton.classList.add('correctButton')
+            corrButton.click()
+        }, 3500)
     }
-})
+}
+
+
+function isAutoplay() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('autoplay') === 'true';
+}
+
 
 function initializePageContent() {
     const urlParams = new URLSearchParams(window.location.search);
     const categoryName = urlParams.get('category_name');
-    const autoplay = urlParams.get('autoplay') === 'true';
-    document.getElementById("quiz-prompt").innerHTML = "Quiz: " + categoryName;
-    return { categoryName, autoplay };
+    document.getElementById("quiz-title").innerHTML = `Test your knowledge of the ${categoryName} landscape!`;
+    //console.log(questions[currQuestion]);
+    //document.getElementById("question-text") = questions[currQuestion].text;
 }
 
 
@@ -226,7 +245,8 @@ function setAnswer(message) {
     }
 }
 
-function removeAnswer(message) {
+
+function removePlayerAnswer(message) {
     console.log('in remove')
     for (let answer in answerCounts) {
         answerCounts[answer].delete(message.id)
@@ -251,4 +271,65 @@ function countAnswers() {
 function resendQuestion() {
     quizData.dataType = 'resendQuestion'
     Chat.socket.send(JSON.stringify(quizData))
+}
+
+
+function getQuestions() {
+    const urlParams = new URLSearchParams(window.location.search);
+    // const myParam = urlParams.get('autoplay');
+    const categoryId = urlParams.get('category_id');
+    fetch('questionsFromDb?category_id=' + categoryId)
+        .then(response => response.text())
+        .then(result => {
+            const questionList = JSON.parse(result);
+            questionList.forEach(question => {
+                questions.push(question);
+            });
+            console.log('getQuestionsDone');
+        })
+        .then(setQuestion)
+}
+
+
+function setQuestion() {
+    const question = questions[currQuestion]
+    document.getElementById("question-text").innerHTML = question.text;
+    if (question.mediaType.includes('image')) {
+        document.getElementById("quoteOrBlob").appendChild( createImg(question.mediaType, question.mediaContent) );
+    }
+    //document.getElementById("quoteOrBlob") = question.mediaContent;
+    getAnswers(question.id);
+}
+
+
+function createImg(imgType, imgString) {
+    const img = document.createElement('img');
+    img.src = `data:${imgType};base64,${imgString}`;
+    return img;
+}
+
+
+function getAnswers(questionId) {
+    fetch('answersFromDb?question_id=' + questionId)
+        .then(response => response.text())
+        .then(result => {
+            const answerList = JSON.parse(result);
+            console.log(answerList);
+            //questionList.forEach(question => {
+            //    questions.push(question);
+            //});
+            console.log('getAnswersDone');
+            return answerList;
+        })
+        .then(answers => {
+            answers.forEach(answer => {
+                //console.log(answer);
+                const button = document.createElement('button');
+                button.innerHTML = answer.answerText;
+                const div = document.createElement('div');
+                div.classList.add('button-container');
+                div.appendChild(button);
+                document.querySelector('.answers').appendChild(div);
+            })
+        })
 }

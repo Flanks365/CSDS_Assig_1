@@ -10,7 +10,7 @@
 <body>
     <header>
         <h1><!-- Dynamically generated title --></h1>
-        <p id="quiz-prompt">Test your knowledge of the <!-- Dynamically generated category --> landscape!</p>
+        <p id="quiz-title">Test your knowledge of the <!-- Dynamically generated category --> landscape!</p>
     </header>
     <input id="autoplay" type="hidden" value="<!-- Autoplay value -->" />
     <input id="autoplayCorrectAnswer" type="hidden" value="<!-- Correct answer ID -->" />
@@ -18,14 +18,14 @@
         <div id="quiz-content">
             <!-- Dynamically generated quiz question content -->
             <div class='question'>
-                <h3><!-- Dynamically generated question text --></h3>
+                <h3 id="question-text"><!-- Dynamically generated question text --></h3>
                 <div id="quoteOrBlob">
                     <!-- Dynamically generated media content (image, video, or quote) -->
                 </div>
                 <div class='answers'>
                     <!-- Dynamically generated answer buttons -->
                     <div class='button-container'>
-                        <button data-answer-id="<!-- Answer ID -->" onclick="selectAnswer(this, 'categoryName', 'answerId', 'questionId', autoplay, currentQuestionIndex)">
+                        <button data-answer-id="<!-- Answer ID -->" onclick="//selectAnswer(this, 'categoryName', 'answerId', 'questionId', autoplay, currentQuestionIndex)">
                             <!-- Dynamically generated answer text -->
                         </button>
                         <span class='answer-counter'>0</span>

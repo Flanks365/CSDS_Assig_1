@@ -10,8 +10,8 @@ public class Repository : IRepository, IDisposable
 {
     // CHANGE THESE TO YOUR OWN
     private readonly string databaseIP = "127.0.0.1";
-    private readonly string databasePort = "1433"; // 1433 is default
-    private readonly string myDatabase = "master";
+    private readonly string databasePort = "1434"; // 1433 is default
+    private readonly string myDatabase = "QuizApp";
     private readonly string myUser = "sa";
     private readonly string myPassword = "Oracle12!";
 
@@ -287,6 +287,10 @@ public class Repository : IRepository, IDisposable
                             {
                                 row.Columns.Add(reader.GetValue(i));
                             }
+                            else if (reader.GetFieldType(i) == typeof(Int32))
+                            {
+                                row.Columns.Add(reader.GetInt32(i).ToString());
+                            }
                             else if (reader.GetFieldType(i) == typeof(Guid))
                             {
                                 row.Columns.Add(reader.GetGuid(i).ToString());  
@@ -453,7 +457,7 @@ public class Repository : IRepository, IDisposable
     {
         List<Question> questions = new List<Question>();
 
-        Select("*", "questions", $"categoryId = {categoryId}");
+        Select("*", "questions", $"category_id = {categoryId}");
 
         try
         {
@@ -478,6 +482,36 @@ public class Repository : IRepository, IDisposable
             Console.WriteLine("Error while parsing categories: " + ex.Message);
         }
         return questions;
+    }
+
+    public List<Answer> GetAnswers(string questionId)
+    {
+        List<Answer> answers = new List<Answer>();
+
+        Select("*", "answers", $"question_id = {questionId}");
+
+        try
+        {
+
+            foreach (var row in rs.Rows)
+            {
+                if (row.Columns.Count >= 5)
+                {
+                    string id = row.Columns[0].ToString().Trim();
+                    //string questionId = row.Columns[1].ToString().Trim();
+                    string answerText = row.Columns[2].ToString().Trim();
+                    string isCorrect = row.Columns[3].ToString().Trim();
+                    string answerIndex = row.Columns[4].ToString().Trim();
+
+                    answers.Add(new Answer(id, questionId, answerText, isCorrect, answerIndex));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error while parsing categories: " + ex.Message);
+        }
+        return answers;
     }
 }
 
