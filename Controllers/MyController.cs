@@ -71,11 +71,14 @@ namespace CSDS_Assign_1.Controllers
         {
             // Log the query parameters for debugging purposes
             Console.WriteLine($"Category Name: {category_name}");
-            Console.WriteLine($"Category Name: {category_id}");
+            Console.WriteLine($"Category ID: {category_id}");
             Console.WriteLine($"Autoplay: {autoplay}");
 
             // Add logic to handle query parameters if needed
             // For example, pass these values to the frontend via JavaScript or process them server-side
+
+            //var questions = _repository.GetQuestions(category_id);
+            //Console.WriteLine(questions);
 
 
             return GetHtmlFile("quizPage");
@@ -92,6 +95,43 @@ namespace CSDS_Assign_1.Controllers
             {
                 var categories = _repository.GetCategories();
                 return Ok(categories); // Return 200 OK with the categories list
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the list of questions from the database, for the specified category.
+        /// </summary>
+        /// <returns>An IActionResult containing the list of questions or an error message.</returns>
+        [HttpGet("questionsFromDB")]
+        public IActionResult GetQuestions(string? category_id = null)
+        {
+            Console.WriteLine($"Category ID: {category_id}");
+            try
+            {
+                var questions = _repository.GetQuestions(category_id);
+                return Ok(questions); // Return 200 OK with the categories list
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the list of answers from the database, for the specified question.
+        /// </summary>
+        /// <returns>An IActionResult containing the list of answers or an error message.</returns>
+        [HttpGet("answersFromDB")]
+        public IActionResult GetAnswers(string? question_id = null)
+        {
+            try
+            {
+                var questions = _repository.GetAnswers(question_id);
+                return Ok(questions); // Return 200 OK with the categories list
             }
             catch (Exception ex)
             {
