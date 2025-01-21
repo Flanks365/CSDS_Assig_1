@@ -198,6 +198,73 @@ public class Repository : IRepository, IDisposable
         }
         Close();
     }
+    
+    
+    /// <summary>
+    /// Updates rows in a table based on a condition and uses parameters for safe execution.
+    /// </summary>
+    /// <param name="table">Table name</param>
+    /// <param name="setString">Set expression (e.g., "column1 = @value1")</param>
+    /// <param name="whereString">Where condition (e.g., "id = @id")</param>
+    /// <param name="parameters">Object containing parameters to be used in the query</param>
+    public void Update(string table, string setString, string whereString, object parameters)
+    {
+        Init();
+        try
+        {
+            // Construct the SQL query with the table name, set string, and where condition
+            string query = $"UPDATE {table} SET {setString} WHERE {whereString}";
+            Console.WriteLine("Generated Query: " + query);
+
+            using (SqlCommand command = new SqlCommand(query, con))
+            {
+                // Add parameters to the command object
+                foreach (var prop in parameters.GetType().GetProperties())
+                {
+                    var paramName = "@" + prop.Name;
+                    var paramValue = prop.GetValue(parameters);
+                    command.Parameters.AddWithValue(paramName, paramValue);
+
+                    // Log the added parameter for debugging purposes
+                    Console.WriteLine($"Parameter Added: {paramName} = {paramValue} (Type: {paramValue?.GetType()})");
+                }
+
+                // Execute the query
+                int rowsAffected = command.ExecuteNonQuery();
+                Console.WriteLine($"{rowsAffected} rows updated.");
+            }
+        }
+        catch (SqlException ex)
+        {
+            // Log detailed SQL exception information
+            Console.WriteLine("SQL Exception occurred:");
+            Console.WriteLine($"Message: {ex.Message}");
+            Console.WriteLine($"SQLState: {ex.State}");
+            Console.WriteLine($"ErrorCode: {ex.ErrorCode}");
+        
+            // Optionally, log each inner exception (if any)
+            SqlException innerEx = ex.InnerException as SqlException;
+            while (innerEx != null)
+            {
+                Console.WriteLine("Inner SQL Exception:");
+                Console.WriteLine($"Message: {innerEx.Message}");
+                innerEx = innerEx.InnerException as SqlException;
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log other exceptions (non-SQL exceptions)
+            Console.WriteLine("Exception occurred: " + ex.Message);
+        }
+        finally
+        {
+            Close();
+        }
+    }
+
+
+    
+    
 
     /// <summary>
     /// Updates rows in a table based on a binary data stream.

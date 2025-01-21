@@ -58,7 +58,7 @@ function fetchQuizData() {
                             <form class="quiz-edit-form" id="edit-${number}" enctype="multipart/form-data">
                                 <input type="hidden" name="id" value="${number}" />
                                 <input type="hidden" name="quizName" value="${message}" />
-                                <input required id="new-quiz-name" type="text" name="QuizName" value="${message}" placeholder="Name" />
+                                <input required id="new-quiz-name" type="text" name="newQuizName" value="${message}" placeholder="Name" />
                                 Image <input required type="file" name="FileName" accept="image/*" />
                                 <button type="button" id="${number}" onclick="submitUpdateQuiz(this.id)">Submit</button>
                             </form>
@@ -94,16 +94,32 @@ function fetchQuizData() {
 
 // Handle the deletion of a quiz
 function deleteQuiz(buttonId) {
-    const url = '/trivia/editQuizzes?id=' + buttonId;
+    event.preventDefault(); // Prevent default behavior (form submission)
 
-    fetch(url, { method: 'DELETE' })
+    // Construct the data to send, in this case only the ID
+    const formData = new FormData();
+    formData.append('id', buttonId); // Append the buttonId to the form data
+
+    // Send the DELETE request with the form data
+    fetch('deleteQuestions', {
+        method: 'DELETE',
+        body: formData
+    })
         .then(response => {
-            if (response.ok) return;
-            throw new Error('Fetch delete failed.');
+            if (!response.ok) {
+                throw new Error('Fetch delete failed.');
+            }
+            return response.json();
         })
-        .then(() => location.reload()) // Reload page after successful deletion
-        .catch(error => console.error('Error:', error));
+        .then(() => {
+            console.log('Quiz deleted successfully.');
+            location.reload(); // Reload the page after successful deletion
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
 }
+
 
 // Handle the deletion of a question
 function deleteQuestionData(buttonId) {
@@ -111,7 +127,7 @@ function deleteQuestionData(buttonId) {
     const form = document.getElementById(`edit-form-${quizId}`);
     const formData = new FormData(form);
 
-    fetch("../editQuestions", {
+    fetch("../deleteQuestions", {
         method: 'DELETE',
         body: formData
     })
@@ -287,16 +303,22 @@ function submitUpdateQuiz(buttonId) {
     const form = document.getElementById(`edit-${buttonId}`);
     const formData = new FormData(form);
 
-    fetch("../editQuizzes", {
-        method: 'POST',
+    fetch("../editCategories", {
+        method: 'PUT',
         body: formData
     })
         .then(response => {
-            if (!response.ok) throw new Error('Update failed with status: ' + response.status);
+            if (!response.ok) {
+                throw new Error('Update failed with status: ' + response.status);
+            }
             return response.json();
         })
-        .then(() => location.reload()) // Reload after update
+        .then(data => {
+            console.log('Update Successful:', data.message); // Log success message or data
+            location.reload(); // Reload after update
+        })
         .catch(error => console.error('Error:', error));
+
 }
 
 // Submit question update data

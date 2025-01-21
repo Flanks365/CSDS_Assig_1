@@ -15,6 +15,84 @@ namespace CSDS_Assign_1.Controllers
             
         }
 
+        [HttpPut("editCategories")]
+        public IActionResult UpdateQuestions()
+        {
+            try
+            {
+                var formData = Request.Form;
+
+                // Log the form data for debugging purposes
+                foreach (var key in Request.Form.Keys)
+                {
+                    var value = Request.Form[key];
+                    Console.WriteLine($"{key}: {value} (Type: {value.GetType()})");
+                }
+
+        
+                // Extract the quizId and newQuizName from the form
+                var quizId = int.Parse(formData["id"].ToString());
+                
+                var newQuizName = formData["newQuizName"].ToString();
+        
+                // Extract the uploaded file
+                var file = formData.Files.GetFile("FileName");
+
+                byte[] fileBytes = null;
+                string imageType = null;
+
+                if (file != null)
+                {
+                    imageType = file.ContentType;
+            
+                    // Read the file as byte array
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        file.CopyTo(memoryStream);
+                        fileBytes = memoryStream.ToArray();
+                    }
+                }
+
+                // Construct the SQL update query
+                string tableString = "categories"; // Table name
+                string setString = "category_name = @newQuizName, image = @FileData, image_type = @imageType"; // Columns to update
+                string whereString = $"id = @quizId"; // Condition for which record to update
+        
+                // Assuming Repository has an Update method that can handle this (adjust the method signature as necessary)
+                _repository.Update(tableString, setString, whereString, 
+                    new { newQuizName, FileData = fileBytes, imageType, quizId });
+
+                return Ok(new { message = "Update successful" });
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("failed");
+                return StatusCode(500, e.Message);
+            }
+        }
+
+
+
+        [HttpDelete("deleteQuestions")]
+        public IActionResult DeleteQuestions()
+        {
+            try
+            {
+                var formData = Request.Form;
+                var questionId = int.Parse(formData["id"].ToString());
+                string tableString = "categories";
+                string whereString = $"id = {questionId}";
+                _repository.Delete(tableString, whereString);
+                return Ok(new { message = "Delete successful" });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+             
+            }
+        }
+
         [HttpGet("getQuizzes")]
         public IActionResult getQuizzes()
         {
