@@ -41,6 +41,49 @@ namespace CSDS_Assign_1.Controllers
         }
 
         /// <summary>
+        /// Handles user signup by accepting form data, hashing the password, and storing the user.
+        /// </summary>
+        /// <param name="signupModel">An object containing user signup data.</param>
+        /// <returns>An IActionResult indicating success or failure.</returns>
+        [HttpPost("signup")]
+        public IActionResult Signup([FromBody] SignupModel signupModel)
+        {
+            if (signupModel == null || string.IsNullOrWhiteSpace(signupModel.Username) || string.IsNullOrWhiteSpace(signupModel.Password))
+            {
+                return BadRequest(new { message = "Invalid signup data." });
+            }
+
+            try
+            {
+                // Check if the username already exists
+                var usernameCheckQuery = $"username = '{signupModel.Username}'";
+                _repository.Select("*", "users", usernameCheckQuery);
+
+                // Check if the query returned any results
+                if (_repository.rs.Rows.Count > 0)
+                {
+                    return BadRequest(new { message = "Username already exists." });
+                }
+
+                // Hash the password using BCrypt
+                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(signupModel.Password);
+
+
+                // Save the user to the database (replace with your database logic)
+                _repository.Insert("users", $"'{signupModel.Username}','{hashedPassword}','user'");
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                // Log the error (replace with your logging logic)
+                Console.WriteLine(ex.Message);
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
+        }
+
+
+        /// <summary>
         /// Serves the Main HTML page.
         /// </summary>
         /// <returns>An IActionResult containing the Main HTML file.</returns>
