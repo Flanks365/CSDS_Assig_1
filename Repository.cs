@@ -195,7 +195,7 @@ public class Repository : IRepository, IDisposable
         }
         Close();
     }
-    
+
     /// <summary>
     /// Updates rows in a table based on a condition and uses parameters for safe execution.
     /// </summary>
@@ -237,7 +237,7 @@ public class Repository : IRepository, IDisposable
             Console.WriteLine($"Message: {ex.Message}");
             Console.WriteLine($"SQLState: {ex.State}");
             Console.WriteLine($"ErrorCode: {ex.ErrorCode}");
-        
+
             // Optionally, log each inner exception (if any)
             SqlException innerEx = ex.InnerException as SqlException;
             while (innerEx != null)
@@ -333,14 +333,14 @@ public class Repository : IRepository, IDisposable
             {
                 using (SqlDataReader reader = stmt.ExecuteReader())
                 {
-                    rs.Rows.Clear();  
+                    rs.Rows.Clear();
 
                     while (reader.Read())
                     {
                         Row row = new Row();
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            if (reader.GetFieldType(i) == typeof(byte[]))  
+                            if (reader.GetFieldType(i) == typeof(byte[]))
                             {
                                 row.Columns.Add(reader.GetValue(i));
                             }
@@ -350,9 +350,9 @@ public class Repository : IRepository, IDisposable
                             }
                             else if (reader.GetFieldType(i) == typeof(Guid))
                             {
-                                row.Columns.Add(reader.GetGuid(i).ToString());  
+                                row.Columns.Add(reader.GetGuid(i).ToString());
                             }
-                            else  
+                            else
                             {
                                 row.Columns.Add(reader.GetString(i));
                             }
@@ -483,7 +483,7 @@ public class Repository : IRepository, IDisposable
             foreach (var row in rs.Rows)
             {
                 if (row.Columns.Count >= 3)
-                { 
+                {
                     // Directly cast the 'id' column to int (as it's an int in the database)
                     int id = Convert.ToInt32(row.Columns[0]);
                     string categoryName = row.Columns[1].ToString().Trim();
@@ -554,6 +554,37 @@ public class Repository : IRepository, IDisposable
         }
         return answers;
     }
+
+    public User GetUser(int userId)
+    {
+        User user = null;
+        Select("*", "users WHERE id = " + userId); // Assuming the 'Select' method allows SQL queries.
+        try
+        {
+            foreach (var row in rs.Rows)
+            {
+                if (row.Columns.Count >= 4) // Ensure we have all 4 columns for the user (id, username, password, role)
+                {
+                    int id = Convert.ToInt32(row.Columns[0]);
+                    string username = row.Columns[1].ToString().Trim();
+                    string password = row.Columns[2].ToString().Trim();
+                    string role = row.Columns[3].ToString().Trim();
+
+                    // Create a new User object and return it
+                    user = new User(id, username, password, role);
+                    break; // Exit the loop after we find the user
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log the error (or handle it in a more robust way, e.g., logging)
+            Console.WriteLine("Error while retrieving user: " + ex.Message);
+        }
+        return user;
+    }
+
+
 }
 
 /// <summary>
