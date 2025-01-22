@@ -15,8 +15,6 @@ public class Repository : IRepository, IDisposable
     private readonly string myUser = "sa";
     private readonly string myPassword = "Oracle12!";
 
-    //127.0.0.1
-    //Oracle12!
     private SqlConnection? con;
     public ResultSet rs;
 
@@ -172,7 +170,6 @@ public class Repository : IRepository, IDisposable
         Close();
     }
 
-
     /// <summary>
     /// Updates rows in a table based on a condition.
     /// </summary>
@@ -198,7 +195,6 @@ public class Repository : IRepository, IDisposable
         }
         Close();
     }
-    
     
     /// <summary>
     /// Updates rows in a table based on a condition and uses parameters for safe execution.
@@ -262,10 +258,6 @@ public class Repository : IRepository, IDisposable
         }
     }
 
-
-    
-    
-
     /// <summary>
     /// Updates rows in a table based on a binary data stream.
     /// </summary>
@@ -298,7 +290,6 @@ public class Repository : IRepository, IDisposable
         Close();
     }
 
-
     /// <summary>
     /// Deletes rows in a table based on a specified condition.
     /// </summary>
@@ -323,7 +314,6 @@ public class Repository : IRepository, IDisposable
         }
         Close();
     }
-
 
     /// <summary>
     /// Selects rows from a table based on a specified condition.
@@ -441,7 +431,6 @@ public class Repository : IRepository, IDisposable
         }
         Close();
     }
-    
 
     /// <summary>
     /// Reads a binary stream and converts it into a byte array.
@@ -488,25 +477,18 @@ public class Repository : IRepository, IDisposable
     public List<Category> GetCategories()
     {
         List<Category> categories = new List<Category>();
-    
         Select("*", "categories");
-
         try
         {
             foreach (var row in rs.Rows)
             {
                 if (row.Columns.Count >= 3)
-                {
-                    
-                    
+                { 
                     // Directly cast the 'id' column to int (as it's an int in the database)
                     int id = Convert.ToInt32(row.Columns[0]);
-
                     string categoryName = row.Columns[1].ToString().Trim();
                     string imgType = row.Columns[2].ToString().Trim();
-
                     byte[]? image = row.Columns[3] as byte[];
-
                     // Create a new Category with the int id
                     categories.Add(new Category(id, categoryName, imgType, image!));
                 }
@@ -519,13 +501,10 @@ public class Repository : IRepository, IDisposable
         return categories;
     }
 
-
     public List<Question> GetQuestions(string categoryId)
     {
         List<Question> questions = new List<Question>();
-
         Select("*", "questions", $"category_id = {categoryId}");
-
         try
         {
 
@@ -539,7 +518,6 @@ public class Repository : IRepository, IDisposable
                     byte[]? mediaContent = row.Columns[3] as byte[];
                     string mediaPreview = row.Columns[4].ToString().Trim();
                     //string categoryId = row.Columns[5].ToString().Trim();
-
                     questions.Add(new Question(id, text, mediaType, mediaContent!, mediaPreview, categoryId));
                 }
             }
@@ -554,12 +532,9 @@ public class Repository : IRepository, IDisposable
     public List<Answer> GetAnswers(string questionId)
     {
         List<Answer> answers = new List<Answer>();
-
         Select("*", "answers", $"question_id = {questionId}");
-
         try
         {
-
             foreach (var row in rs.Rows)
             {
                 if (row.Columns.Count >= 5)
@@ -569,7 +544,6 @@ public class Repository : IRepository, IDisposable
                     string answerText = row.Columns[2].ToString().Trim();
                     string isCorrect = row.Columns[3].ToString().Trim();
                     string answerIndex = row.Columns[4].ToString().Trim();
-
                     answers.Add(new Answer(id, questionId, answerText, isCorrect, answerIndex));
                 }
             }
