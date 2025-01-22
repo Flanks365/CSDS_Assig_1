@@ -67,7 +67,7 @@ namespace CSDS_Assign_1.Controllers
         /// <param name="autoplay">A flag to enable or disable autoplay (optional).</param>
         /// <returns>An IActionResult containing the QuizPage HTML file.</returns>
         [HttpGet("QuizPage")]
-        public IActionResult QuizPage(string? category_name = null, string? category_id = null, bool ? autoplay = null)
+        public IActionResult QuizPage(string? category_name = null, string? category_id = null, bool? autoplay = null)
         {
             // Log the query parameters for debugging purposes
             Console.WriteLine($"Category Name: {category_name}");
@@ -158,5 +158,32 @@ namespace CSDS_Assign_1.Controllers
 
             return PhysicalFile(filePath, "text/html");
         }
+
+        /// <summary>
+        /// Retrieves a user from the database by their ID.
+        /// </summary>
+        /// <param name="id">The ID of the user to retrieve.</param>
+        /// <returns>An IActionResult containing the user data or an error message.</returns>
+        [HttpGet("user/{id}")]
+        public IActionResult GetUser(int id)
+        {
+            try
+            {
+                // Assuming _repository.GetUser(id) retrieves a user by ID from the database
+                var user = _repository.GetUser(id);
+
+                if (user == null)
+                {
+                    return NotFound($"User with ID {id} not found."); // Return 404 if user is not found
+                }
+
+                return Ok(user); // Return 200 OK with the user data
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}"); // Return 500 if an error occurs
+            }
+        }
+
     }
 }
