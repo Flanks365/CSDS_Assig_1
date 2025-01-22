@@ -10,9 +10,7 @@ namespace CSDS_Assign_1
         public string AnswerText { get; private set; }
         public string IsCorrect { get; private set; }
         public string AnswerIndex { get; private set; }
-        public string FKAnswersQuestions { get; private set; }
-        
-
+      
         // Constructor to initialize properties
         public Answer(string id, string questionId, string answerText, string isCorrect, string answerIndex)
         {
