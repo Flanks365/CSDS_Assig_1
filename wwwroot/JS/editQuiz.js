@@ -215,21 +215,20 @@ function fetchQuizQuestions(quizId, quizName) {
 
     const queryString = new URLSearchParams(formData).toString();
 
-    fetch("getQuestions", { method: 'GET', body: formData })
+    fetch(`getQuestions?id=${quizId}&quizName=${encodeURIComponent(quizName)}`, { method: 'GET'})
         .then(response => response.json())
         .then(data => {
             let output2 = '';
             data.forEach(quest => {
-                quest = JSON.parse(quest);
                 console.log(quest);
-                const questId = quest.sid;
-                const corr = quest.corrAns;
-                const dec1 = quest.decAns1;
-                const dec2 = quest.decAns2;
-                const dec3 = quest.decAns3;
-                const mediaTyp = quest.media_type;
-                const mediaPrev = quest.media_preview;
-                const question = quest.question;
+                const questId = quest.QuestId;
+                const corr = quest.Corr;
+                const dec1 = quest.Dec1;
+                const dec2 = quest.Dec2;
+                const dec3 = quest.Dec3;
+                const mediaTyp = quest.MediaTyp;
+                const mediaPrev = quest.MediaPrev;
+                const question = quest.Question;
 
                 output2 += `
                     <div class="questions-div">
@@ -288,7 +287,7 @@ function submitFormData() {
     const form = document.getElementById("new-question-form");
     const formData = new FormData(form);
 
-    fetch('../editQuestions', {
+    fetch('../postQuestions', {
         method: 'POST',
         body: formData
     })

@@ -1,6 +1,7 @@
 using CSDS_Assign_1;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 /// <summary>
 /// Provides methods for database operations, including CRUD operations and connection management.
@@ -520,66 +521,116 @@ public class Repository : IRepository, IDisposable
     }
 
 
-    public List<Question> GetQuestions(string categoryId)
+    public List<Questions_W_Answers> GetQuestions(string categoryId)
+{
+    List<Question> questions = new List<Question>();
+    List<Answer> answers = new List<Answer>();
+    List<Questions_W_Answers> res = new List<Questions_W_Answers>();
+    
+    Console.WriteLine($"Fetching questions for categoryId: {categoryId}");
+
+    Select("*", "questions", $"category_id = {categoryId}");
+
+    try
     {
-        List<Question> questions = new List<Question>();
+        // Printing number of rows fetched from the database
+        Console.WriteLine($"Rows fetched: {rs.Rows.Count}");
 
-        Select("*", "questions", $"category_id = {categoryId}");
-
-        try
+        foreach (var row in rs.Rows)
         {
-
-            foreach (var row in rs.Rows)
+            if (row.Columns.Count >= 6)
             {
-                if (row.Columns.Count >= 6)
-                {
-                    string id = row.Columns[0].ToString().Trim();
-                    string text = row.Columns[1].ToString().Trim();
-                    string mediaType = row.Columns[2].ToString().Trim();
-                    byte[]? mediaContent = row.Columns[3] as byte[];
-                    string mediaPreview = row.Columns[4].ToString().Trim();
-                    //string categoryId = row.Columns[5].ToString().Trim();
+                string id = row.Columns[0].ToString().Trim();
+                string text = row.Columns[1].ToString().Trim();
+                string mediaType = row.Columns[2].ToString().Trim();
+                byte[]? mediaContent = row.Columns[3] as byte[];
+                string mediaPreview = row.Columns[4].ToString().Trim();
+                //string categoryId = row.Columns[5].ToString().Trim();
 
-                    questions.Add(new Question(id, text, mediaType, mediaContent!, mediaPreview, categoryId));
-                }
+                Console.WriteLine($"Question Id: {id}, Text: {text}, MediaType: {mediaType}, MediaPreview: {mediaPreview}");
+
+                questions.Add(new Question(id, text, mediaType, mediaContent!, mediaPreview, categoryId));
             }
         }
-        catch (Exception ex)
+
+        foreach (var question in questions)
         {
-            Console.WriteLine("Error while parsing categories: " + ex.Message);
-        }
-        return questions;
-    }
-
-    public List<Answer> GetAnswers(string questionId)
-    {
-        List<Answer> answers = new List<Answer>();
-
-        Select("*", "answers", $"question_id = {questionId}");
-
-        try
-        {
-
-            foreach (var row in rs.Rows)
+            Console.WriteLine($"Fetching answers for questionId: {question.Id}");
+            answers = GetAnswers(question.Id);
+    
+            List<String> answersList = new List<String>();
+            var correctAnswer = answers.FirstOrDefault(a => a.IsCorrect == "Y");
+            if (correctAnswer != null)
             {
-                if (row.Columns.Count >= 5)
-                {
-                    string id = row.Columns[0].ToString().Trim();
-                    //string questionId = row.Columns[1].ToString().Trim();
-                    string answerText = row.Columns[2].ToString().Trim();
-                    string isCorrect = row.Columns[3].ToString().Trim();
-                    string answerIndex = row.Columns[4].ToString().Trim();
+                answersList.Insert(0, correctAnswer.AnswerText); // Add correct answer first
+            }
 
-                    answers.Add(new Answer(id, questionId, answerText, isCorrect, answerIndex));
+            // Add other answers, avoiding duplicates
+            foreach (var ans in answers)
+            {
+                if (ans.IsCorrect != "Y" && !answersList.Contains(ans.AnswerText))
+                {
+                    answersList.Add(ans.AnswerText);
+                }
+
+                // Ensure no more than 4 answers are added
+                if (answersList.Count == 4)
+                {
+                    break;
                 }
             }
+
+            // Log answers
+            Console.WriteLine($"Answers for question {question.Id}: {string.Join(", ", answersList)}");
+
+            res.Add(new Questions_W_Answers(question.Id,
+                answersList.ElementAtOrDefault(0), answersList.ElementAtOrDefault(1),
+                answersList.ElementAtOrDefault(2), answersList.ElementAtOrDefault(3),
+                question.MediaType, question.MediaPreview, question.Text));
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error while parsing categories: " + ex.Message);
-        }
-        return answers;
+
     }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Error while parsing categories: " + ex.Message);
+    }
+    return res;
+}
+
+public List<Answer> GetAnswers(string questionId)
+{
+    List<Answer> answers = new List<Answer>();
+
+    Console.WriteLine($"Fetching answers for questionId: {questionId}");
+    Select("*", "answers", $"question_id = {questionId}");
+
+    try
+    {
+        // Printing number of rows fetched for answers
+        Console.WriteLine($"Rows fetched for answers: {rs.Rows.Count}");
+
+        foreach (var row in rs.Rows)
+        {
+            if (row.Columns.Count >= 5)
+            {
+                string id = row.Columns[0].ToString().Trim();
+                string answerText = row.Columns[2].ToString().Trim();
+                string isCorrect = row.Columns[3].ToString().Trim();
+                string answerIndex = row.Columns[4].ToString().Trim();
+
+                Console.WriteLine($"Answer Id: {id}, AnswerText: {answerText}, IsCorrect: {isCorrect}, AnswerIndex: {answerIndex}");
+
+                answers.Add(new Answer(id, questionId, answerText, isCorrect, answerIndex));
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Error while parsing answers: " + ex.Message);
+    }
+    return answers;
+}
+
 }
 
 /// <summary>
