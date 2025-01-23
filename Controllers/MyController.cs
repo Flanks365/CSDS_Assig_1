@@ -90,7 +90,34 @@ namespace CSDS_Assign_1.Controllers
         [HttpGet("main")]
         public IActionResult Main()
         {
-            return GetHtmlFile("main");
+            var username = HttpContext.Session.GetString("USERNAME");
+                
+            if (string.IsNullOrEmpty(username))
+            {
+                Console.WriteLine("username nullOrEmpty");
+                return GetHtmlFile("login");
+            }
+
+            var role = HttpContext.Session.GetString("ROLE");
+            
+            string mainPage = getHTMLAsString("main.html");
+            if (role.Equals("admin"))
+            {
+                Console.WriteLine(getHTMLAsString("admin.html"));
+                mainPage = mainPage.Replace("<!--admin-->", getHTMLAsString("admin.html"));
+            }
+            mainPage = mainPage.Replace("[USER_ID]", username);
+            
+            return Content(mainPage, "text/html");
+        }
+
+        [HttpGet("logout")]
+        public IActionResult Logout()
+        {
+            // Clear the entire session
+            HttpContext.Session.Clear();
+            Console.WriteLine("Session storage cleared");
+            return GetHtmlFile("login");
         }
 
         /// <summary>
@@ -228,5 +255,23 @@ namespace CSDS_Assign_1.Controllers
             }
         }
 
+
+        /** Used to simplify getting the html page as a string. 
+         *  Mainly for formatting parts of the html page.*/
+        private static string getHTMLAsString(string htmlFile)
+        {
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/HTML", htmlFile);
+            // Check if the file exists
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return null;
+            }
+
+            // Read and return the file content
+            var htmlContent = System.IO.File.ReadAllText(filePath);
+
+            return htmlContent;
+        }
     }
 }
