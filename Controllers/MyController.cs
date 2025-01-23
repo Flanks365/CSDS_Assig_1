@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Collections.Generic;
+using System.Net.WebSockets;
 
 namespace CSDS_Assign_1.Controllers
 {
@@ -185,5 +186,10 @@ namespace CSDS_Assign_1.Controllers
             }
         }
 
+        [HttpGet("moderatedQuiz")]
+        public IActionResult ModeratedQuiz()
+        {
+            return GetHtmlFile("moderatedQuiz");
+        }
     }
 }

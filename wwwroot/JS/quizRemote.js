@@ -47,9 +47,9 @@ Chat.connect = (function (host) {
 
 Chat.initialize = function () {
     if (window.location.protocol == 'http:') {
-        Chat.connect('ws://' + window.location.host + '/trivia/websocket/quiz');
+        Chat.connect('ws://' + window.location.host + '/websockets/quiz');
     } else {
-        Chat.connect('wss://' + window.location.host + '/trivia/websocket/quiz');
+        Chat.connect('wss://' + window.location.host + '/websockets/quiz');
     }
 };
 

@@ -1,7 +1,7 @@
 //// "use strict";
 
 const questions = [];
-const currQuestion = 0;
+var currQuestion = 0;
 const answers = []
 const answerCounts = {}
 const quizData = {}
@@ -22,9 +22,6 @@ if (document.readyState !== 'loading') {
 
 window.addEventListener('load', () => {
     initializePage();
-    if (isAutoplay() == 'true') {
-        setAutoplay();
-    }
 })
 
 
@@ -162,14 +159,21 @@ function selectAnswer(element, categoryName, answerId, questionId, autoplay, cur
 function toggleButtonsDisabled(buttons) {
     buttons.forEach(button => {
         button.querySelector('button').disabled = !button.querySelector('button').disabled
+        //console.log(button);
+        //button.disabled = !button.disabled
     })
 }
 
 
-function setAutoplay() {
-    const correctAnswerID = document.getElementById('autoplayCorrectAnswer').value;
+function setAutoplay(corrButton, correctAnswerID) {
+    if (!isAutoplay()) {
+        return;
+    }
+    console.log('setting autoplay');
+    //const correctAnswerID = document.getElementById('autoplayCorrectAnswer').value;
     const questionInfo = document.getElementById('questionInfo');
-    let corrButton = document.getElementById(correctAnswerID);
+    //let corrButton = document.getElementById(correctAnswerID);
+    //let { corrButton, correctAnswerID } = getCorrectButton();
     let secondsRemaining = 10
     questionInfo.innerHTML = "Time left: " + secondsRemaining
     const myInterval = setInterval(() => {
@@ -178,7 +182,7 @@ function setAutoplay() {
         if (!secondsRemaining) {
             const message = { dataType: 'hostAnswered', message: 'Correct answer: ' + corrButton.innerHTML, selection: correctAnswerID }
             console.log(message)
-            Chat.socket.send(JSON.stringify(message))
+            //Chat.socket.send(JSON.stringify(message))
             startAnimation()
         }
     }, 1000)
@@ -199,6 +203,21 @@ function isAutoplay() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('autoplay') === 'true';
 }
+
+
+//function getCorrectButton() {
+//    let correctButton;
+//    let correctButtonId;
+//    document.querySelector('.answers').querySelectorAll('.button-container').forEach(button => {
+//        if (button.dataset.isCorrect == "Y") {
+//            correctButton = button;
+//            correctButtonId = button.dataset.id;
+//        }
+//    })
+//    if (correctButton && correctButtonId) {
+//        return { correctButton, correctButtonId }
+//    }
+//}
 
 
 function initializePageContent() {
@@ -292,12 +311,18 @@ function getQuestions() {
 
 
 function setQuestion() {
+    if (currQuestion >= questions.length) {
+        document.getElementById("question-text").innerHTML = 'Quiz done!';
+        document.getElementById("quoteOrBlob").innerHTML = '';
+        document.querySelector('.answers').innerHTML = '';
+        return;
+    }
     const question = questions[currQuestion]
     document.getElementById("question-text").innerHTML = question.text;
+    document.getElementById("quoteOrBlob").innerHTML = '';
     if (question.mediaType.includes('image')) {
         document.getElementById("quoteOrBlob").appendChild( createImg(question.mediaType, question.mediaContent) );
     }
-    //document.getElementById("quoteOrBlob") = question.mediaContent;
     getAnswers(question.id);
 }
 
@@ -315,21 +340,61 @@ function getAnswers(questionId) {
         .then(result => {
             const answerList = JSON.parse(result);
             console.log(answerList);
-            //questionList.forEach(question => {
-            //    questions.push(question);
-            //});
             console.log('getAnswersDone');
             return answerList;
         })
         .then(answers => {
+            document.querySelector('.answers').innerHTML = '';
             answers.forEach(answer => {
-                //console.log(answer);
-                const button = document.createElement('button');
-                button.innerHTML = answer.answerText;
-                const div = document.createElement('div');
-                div.classList.add('button-container');
-                div.appendChild(button);
-                document.querySelector('.answers').appendChild(div);
+                addAnswer(answer);
             })
         })
 }
+
+
+function addAnswer(answer) {
+    const button = document.createElement('button');
+    button.innerHTML = answer.answerText;
+    //button.dataset.isCorrect = answer.isCorrect;
+    //button.dataset.id = answer.id;
+    const span = document.createElement('span');
+    span.classList.add('answer-counter');
+    span.innerHTML = 0;
+    const div = document.createElement('div');
+    div.classList.add('button-container');
+    div.appendChild(button);
+    div.appendChild(span);
+    document.querySelector('.answers').appendChild(div);
+
+    const buttons = document.querySelector('.answers').childNodes;
+
+    if (answer.isCorrect === 'Y') {
+        button.onclick = () => {
+            const message = { dataType: 'hostAnswered', message: 'Correct answer: ' + answer.answerText, selection: answer.id }
+            console.log(message)
+            //Chat.socket.send(JSON.stringify(message))
+            toggleButtonsDisabled(buttons)
+            button.classList.add('correctButton')
+            setTimeout(() => {
+                toggleButtonsDisabled(buttons)
+                button.classList.remove('correctButton')
+                console.log('move to next q');
+                currQuestion++;
+                setQuestion();
+            }, 1000)
+        }
+        setAutoplay(button, answer.id);
+    } else {
+        button.onclick = () => {
+            toggleButtonsDisabled(buttons)
+            button.classList.add('incorrectButton')
+            setTimeout(() => {
+                toggleButtonsDisabled(buttons)
+                button.classList.remove('incorrectButton')
+            }, 500)
+        }
+    }
+}
+
+
+
