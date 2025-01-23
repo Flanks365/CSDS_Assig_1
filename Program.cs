@@ -13,6 +13,15 @@ builder.Services.AddSingleton<ModeratedQuizService>();
 // Adds support for MVC controllers to the service container, enabling routing and handling HTTP requests.
 builder.Services.AddControllers();
 
+// Adds support for server-side sessions
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromSeconds(600); //10 min session
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 // Builds the WebApplication pipeline from the configured services and middleware.
 var app = builder.Build();
 
@@ -26,6 +35,9 @@ app.UseAuthorization();
 
 // Maps controller endpoints, connecting the routes defined in controllers to the application's request pipeline.
 app.MapControllers();
+
+// Enables session state for the application; required for HttpContext.Session
+app.UseSession();
 
 app.UseWebSockets();
 

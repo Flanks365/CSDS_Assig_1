@@ -7,20 +7,24 @@
     <link rel="stylesheet" href="CSS/styles.css" type="text/css">
 </head>
 <body>
-<h1>Login here</h1>
-<form action="login" method="POST">
-    <label for="username">Username:</label>
-    <input type="text" name="username" id="username">
-    <br />
-    <label for="password">Password:</label>
-    <input type="password" name="password" id="password">
-    <br />
-    <input type="submit" value="Log in">
-</form>
-<div style="text-align: center;">
-    <form action="signup" method="GET">
-        <input type="submit" value="Sign up">
+    <h1 style="text-align: center;">Login here</h1>
+    <form id="loginForm">
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" required>
+        <br />
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" required>
+        <br />
+        <input type="submit" value="Log in">
     </form>
-</div>
+    <br />
+    <div style="text-align:center;" id="errorMsg"></div>
+    <br />
+    <div style="text-align: center;">
+        <form action="signup" method="GET">
+            <input type="submit" value="Sign up">
+        </form>
+    </div>
+    <script src="./JS/loginCheck.js"></script>
 </body>
 </html>
