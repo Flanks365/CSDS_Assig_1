@@ -11,8 +11,8 @@ public class Repository : IRepository, IDisposable
 {
     // CHANGE THESE TO YOUR OWN
     private readonly string databaseIP = "127.0.0.1";
-    private readonly string databasePort = "1434"; // 1433 is default
-    private readonly string myDatabase = "QuizApp";
+    private readonly string databasePort = "1433"; // 1433 is default
+    private readonly string myDatabase = "master";
     private readonly string myUser = "sa";
     private readonly string myPassword = "Oracle12!";
 
@@ -360,6 +360,33 @@ public class Repository : IRepository, IDisposable
         }
         Close();
     }
+    
+    public void Delete(string tableString, string conditionString, int questionId)
+    {
+        Init();
+        try
+        {
+            // Ensure parameterized query to avoid SQL injection
+            string query = $"DELETE FROM {tableString} WHERE {conditionString}";
+            Console.WriteLine(query);
+
+            using (SqlCommand stmt = new SqlCommand(query, con))
+            {
+                // Add parameter to the query
+                stmt.Parameters.AddWithValue("@questionId", questionId);
+
+                // Execute the query
+                int rowsAffected = stmt.ExecuteNonQuery();
+                Console.WriteLine($"{rowsAffected} rows deleted.");
+            }
+        }
+        catch (SqlException ex)
+        {
+            PrintSqlException(ex);
+        }
+        Close();
+    }
+
 
 
     /// <summary>
