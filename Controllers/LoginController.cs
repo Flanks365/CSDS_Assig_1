@@ -59,22 +59,6 @@ namespace ControllerExample.Controllers
                 return StatusCode(StatusCodes.Status405MethodNotAllowed);
             }
         }
-
-        private static string getHTMLAsString(string htmlFile)
-        {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/HTML", "main.html");
-            // Check if the file exists
-            
-            if (!System.IO.File.Exists(filePath))
-            {
-                return null;
-            }
-            
-            // Read and return the file content
-            var htmlContent = System.IO.File.ReadAllText(filePath);
-
-            return htmlContent;
-        }
     }
 
 }

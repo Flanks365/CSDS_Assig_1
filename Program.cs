@@ -1,3 +1,5 @@
+using CSDS_Assign_1;
+
 // Initializes the WebApplication builder with the given arguments, setting up the configuration, logging, and DI container.
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +36,9 @@ app.MapControllers();
 
 // Enables session state for the application; required for HttpContext.Session
 app.UseSession();
+
+// Add middleware before any sensitive endpoints
+app.UseMiddleware<AuthenticationMiddleware>();
 
 // Starts the application, listening for incoming HTTP requests.
 app.Run();

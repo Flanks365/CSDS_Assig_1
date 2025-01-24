@@ -91,16 +91,10 @@ namespace CSDS_Assign_1.Controllers
         public IActionResult Main()
         {
             var username = HttpContext.Session.GetString("USERNAME");
-                
-            if (string.IsNullOrEmpty(username))
-            {
-                Console.WriteLine("username nullOrEmpty");
-                return GetHtmlFile("login");
-            }
-
-            var role = HttpContext.Session.GetString("ROLE");
+            string role = HttpContext.Session.GetString("ROLE");
             
             string mainPage = getHTMLAsString("main.html");
+            
             if (role.Equals("admin"))
             {
                 Console.WriteLine(getHTMLAsString("admin.html"));
