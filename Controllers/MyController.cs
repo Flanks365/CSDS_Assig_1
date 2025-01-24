@@ -91,7 +91,9 @@ namespace CSDS_Assign_1.Controllers
         [HttpGet("main")]
         public IActionResult Main()
         {
+            Console.WriteLine("in main");
             var username = HttpContext.Session.GetString("USERNAME");
+            Console.WriteLine("Username: " + username);
                 
             if (string.IsNullOrEmpty(username))
             {

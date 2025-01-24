@@ -5,20 +5,12 @@ var currQuestion = 0;
 const answers = []
 const answerCounts = {}
 const quizData = {}
+quizData.answers = [];
 var showCounts = true;
 var Chat = {};
 Chat.socket = null;
 
 console.log('test')
-
-if (document.readyState !== 'loading') {
-    //Chat.initialize();
-} else {
-    //document.addEventListener("DOMContentLoaded", function () {
-    //    //Chat.initialize();
-    //}, false);
-    //document.addEventListener("DOMContentLoaded", () => { initializePage() });
-}
 
 window.addEventListener('load', () => {
     initializePage();
@@ -37,7 +29,7 @@ Chat.connect = (function (host) {
 
     Chat.socket.onopen = function () {
         console.log('Info: WebSocket connection opened.');
-        Chat.socket.send(JSON.stringify(quizData))
+        //Chat.socket.send(JSON.stringify(quizData))
         // document.getElementById('chat').onkeydown = function (event) {
         //     if (event.keyCode == 13) {
         //         Chat.sendMessage();
@@ -80,17 +72,17 @@ Chat.initialize = function () {
     // answers = []
     // answerCounts = {}
 
-    document.querySelector('.answers').querySelectorAll('.button-container').forEach(buttonContainer => {
-        const button = buttonContainer.querySelector('button')
-        answers.push({ id: button.dataset.answerId, text: button.innerHTML })
-        answerCounts[button.dataset.answerId] = new Set()
-    })
-    console.log(answers)
+    //document.querySelector('.answers').querySelectorAll('.button-container').forEach(buttonContainer => {
+    //    const button = buttonContainer.querySelector('button')
+    //    answers.push({ id: button.dataset.answerId, text: button.innerHTML })
+    //    answerCounts[button.dataset.answerId] = new Set()
+    //})
+    //console.log(answers)
 
     //const quizData = {}
-    quizData.dataType = "newQuestion"
-    quizData.message = questionText
-    quizData.answers = answers
+    //quizData.dataType = "newQuestion"
+    //quizData.message = questionText
+    //quizData.answers = answers
 
     document.getElementById('counter-toggle').addEventListener('click', toggleAnswerCounts)
     // document.querySelector('.answers').querySelectorAll('.button-container').forEach(buttonContainer => {
@@ -107,11 +99,20 @@ Chat.initialize = function () {
 
 
     if (window.location.protocol == 'http:') {
-        Chat.connect('ws://' + window.location.host + '/trivia/websocket/quiz');
+        Chat.connect('ws://' + window.location.host + '/websockets/quiz');
     } else {
-        Chat.connect('wss://' + window.location.host + '/trivia/websocket/quiz');
+        Chat.connect('wss://' + window.location.host + '/websockets/quiz');
     }
 };
+
+if (document.readyState !== 'loading') {
+    Chat.initialize();
+} else {
+    document.addEventListener("DOMContentLoaded", function () {
+        Chat.initialize();
+    }, false);
+    //document.addEventListener("DOMContentLoaded", () => { initializePage() });
+}
 
 
 function initializePage() {
@@ -182,7 +183,7 @@ function setAutoplay(corrButton, correctAnswerID) {
         if (!secondsRemaining) {
             const message = { dataType: 'hostAnswered', message: 'Correct answer: ' + corrButton.innerHTML, selection: correctAnswerID }
             console.log(message)
-            //Chat.socket.send(JSON.stringify(message))
+            Chat.socket.send(JSON.stringify(message))
             startAnimation()
         }
     }, 1000)
@@ -279,7 +280,7 @@ function removePlayerAnswer(message) {
 
 function countAnswers() {
     document.querySelector('.answers').querySelectorAll('.button-container').forEach(buttonContainer => {
-        const ansId = buttonContainer.querySelector('button').dataset.answerId
+        const ansId = buttonContainer.querySelector('button').dataset.id
         const counter = buttonContainer.querySelector('span')
         // answers.push({id: button.dataset.answerId, text: button.innerHTML})
         counter.innerHTML = answerCounts[ansId].size
@@ -323,6 +324,7 @@ function setQuestion() {
     if (question.mediaType.includes('image')) {
         document.getElementById("quoteOrBlob").appendChild( createImg(question.mediaType, question.mediaContent) );
     }
+    quizData.message = question.text;
     getAnswers(question.id);
 }
 
@@ -345,9 +347,16 @@ function getAnswers(questionId) {
         })
         .then(answers => {
             document.querySelector('.answers').innerHTML = '';
+            quizData.answers = [];
             answers.forEach(answer => {
                 addAnswer(answer);
             })
+            document.querySelector('.answers').querySelectorAll('.button-container').forEach(buttonContainer => {
+                const button = buttonContainer.querySelector('button')
+                //answers.push({ id: button.dataset.answerId, text: button.innerHTML })
+                answerCounts[button.dataset.id] = new Set()
+            })
+            sendNewQuestion();
         })
 }
 
@@ -356,7 +365,7 @@ function addAnswer(answer) {
     const button = document.createElement('button');
     button.innerHTML = answer.answerText;
     //button.dataset.isCorrect = answer.isCorrect;
-    //button.dataset.id = answer.id;
+    button.dataset.id = answer.id;
     const span = document.createElement('span');
     span.classList.add('answer-counter');
     span.innerHTML = 0;
@@ -368,11 +377,14 @@ function addAnswer(answer) {
 
     const buttons = document.querySelector('.answers').childNodes;
 
+    quizData.answers.push({ text: answer.answerText, id: answer.id })
+    //answerCounts[answer.id] = [];
+
     if (answer.isCorrect === 'Y') {
         button.onclick = () => {
             const message = { dataType: 'hostAnswered', message: 'Correct answer: ' + answer.answerText, selection: answer.id }
             console.log(message)
-            //Chat.socket.send(JSON.stringify(message))
+            Chat.socket.send(JSON.stringify(message))
             toggleButtonsDisabled(buttons)
             button.classList.add('correctButton')
             setTimeout(() => {
@@ -397,4 +409,8 @@ function addAnswer(answer) {
 }
 
 
-
+function sendNewQuestion() {
+    quizData.dataType = "newQuestion"
+    console.log(quizData);
+    Chat.socket.send(JSON.stringify(quizData));
+}
