@@ -13,7 +13,7 @@ namespace CSDS_Assign_1
             "/loginpost",
             "/signup",
             "/logout",
-            "/updateQuestions"
+            "/updateQuest"
         };
 
         public AuthenticationMiddleware(RequestDelegate next)

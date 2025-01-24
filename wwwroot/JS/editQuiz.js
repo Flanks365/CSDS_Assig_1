@@ -329,7 +329,7 @@ function submitUpdateData(buttonId) {
     const formData = new FormData(form);
     const baseUrl = window.location.origin;
 
-    fetch(`${baseUrl}/updateQuest`, {
+    fetch(`../updateQuest`, {
         method: 'PUT',
         body: formData
     })

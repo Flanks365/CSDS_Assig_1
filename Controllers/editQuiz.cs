@@ -17,7 +17,7 @@ namespace CSDS_Assign_1.Controllers
         }
 
         [HttpPut("editCategories")]
-        public IActionResult UpdateQuestions()
+        public IActionResult UpdateQuiz()
         {
             try
             {
@@ -300,81 +300,81 @@ namespace CSDS_Assign_1.Controllers
         }
 
         [HttpPut("updateQuest")]
-        public IActionResult UpdateQuestions()
+public IActionResult UpdateQuestions()
+{
+    try
+    {
+        var formData = Request.Form;
+
+        // Parse and retrieve form data
+        var questionId = int.Parse(formData["questionId"].ToString());
+        var questionText = formData["Question"].ToString();
+        var ansText = formData["Answer"].ToString();
+        var dec1 = formData["Decoy1"].ToString();
+        var dec2 = formData["Decoy2"].ToString();
+        var dec3 = formData["Decoy3"].ToString();
+        var contentType = formData["ContentType"].ToString();
+        var quoteText = formData["QuoteText"].ToString();
+
+        byte[] fileBytes = null;
+        string imageType = null;
+
+        // Handle file upload
+        var file = Request.Form.Files.GetFile("FileName");
+        if (file != null && file.Length > 0)
         {
-            try
+            imageType = file.ContentType;
+            using (var memoryStream = new MemoryStream())
             {
-                var formData = Request.Form;
-
-                var questionId = int.Parse(formData["questionId"].ToString());
-
-                var questionText = formData["Question"].ToString();
-                var ansText = formData["Answer"].ToString();
-                var dec1 = formData["Decoy1"].ToString();
-                var dec2 = formData["Decoy2"].ToString();
-                var dec3 = formData["Decoy3"].ToString();
-
-                var contentType = formData["ContentType"];
-                var quoteText = formData["QuoteText"];
-
-                byte[] fileBytes = null;
-                string imageType = null;
-
-                
-                var file = Request.Form.Files.GetFile("FileName");
-                imageType = file.ContentType;
-                if (file != null && file.Length > 0)
-                {
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        file.CopyTo(memoryStream);
-                        fileBytes = memoryStream.ToArray();
-                    }
-                }
-
-
-                string tableString = "questions";
-                string setString = "question_text, media_type, media_content, media_preview";
-                string valueString = $"{questionText}, {contentType}, {quoteText}";
-                string condString = $"id = {questionId}";
-                _repository.Update(tableString, setString, valueString, condString);
-
-                if (fileBytes != null)
-                {
-                    string imageSet = "media_content = @binaryData";
-                    _repository.Update(tableString, imageSet, new MemoryStream(fileBytes));
-                }
-
-                string answersTableString = "answers";
-                string answer1setString = "answer_text";
-                string answer2setString = "answer_text";
-                string answer3setString = "answer_text";
-                string answer4setString = "answer_text";
-
-                string answer1Value = $"{ansText}";
-                string answer2Value = $"{dec1}";
-                string answer3Value = $"{dec2}";
-                string answer4Value = $"{dec3}";
-
-                string answer1Cond = $"{questionId}, {1}";
-                string answer2Cond = $"{questionId}, {2}";
-                string answer3Cond = $"{questionId}, {3}";
-                string answer4Cond = $"{questionId}, {4}";
-
-                _repository.Update(answersTableString, answer1setString, answer1Value, answer1Cond);
-                _repository.Update(answersTableString, answer2setString, answer2Value, answer2Cond);
-                _repository.Update(answersTableString, answer3setString, answer3Value, answer3Cond);
-                _repository.Update(answersTableString, answer4setString, answer4Value, answer4Cond);
-
-                return Ok("Question updated successfully");
+                file.CopyTo(memoryStream);
+                fileBytes = memoryStream.ToArray();
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-
-
         }
+
+        // Update questions table
+        string tableString = "questions";
+        string setString = "question_text = @questionText, media_type = @contentType, media_preview = @quoteText";
+        string whereString = "id = @questionId";
+
+        _repository.Update(tableString, setString, whereString, 
+            new { questionText, contentType, quoteText, questionId });
+
+        // Update binary data for media content if a file is provided
+        if (fileBytes != null)
+        {
+            string binarySetString = "media_content = @binaryData";
+            _repository.Update(tableString, binarySetString, whereString, 
+                new { binaryData = fileBytes, questionId });
+        }
+
+        // Update answers table
+        string answersTableString = "answers";
+        for (int i = 1; i <= 4; i++)
+        {
+            string answerText = i switch
+            {
+                1 => ansText,
+                2 => dec1,
+                3 => dec2,
+                4 => dec3,
+                _ => throw new InvalidOperationException("Invalid answer index")
+            };
+
+            string answerSetString = "answer_text = @answerText";
+            string answerWhereString = "question_id = @questionId AND answer_number = @answerNumber";
+
+            _repository.Update(answersTableString, answerSetString, answerWhereString, 
+                new { answerText, questionId, answerNumber = i });
+        }
+
+        return Ok("Question updated successfully");
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, ex.Message);
+    }
+}
+
         
 
         // Serve an HTML file
