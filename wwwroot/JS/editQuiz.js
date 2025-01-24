@@ -327,9 +327,10 @@ function submitUpdateData(buttonId) {
     event.preventDefault();
     const form = document.getElementById(`edit-form-${buttonId}`);
     const formData = new FormData(form);
+    const baseUrl = window.location.origin;
 
-    fetch('../editQuestions', {
-        method: 'POST',
+    fetch(`${baseUrl}/updateQuest`, {
+        method: 'PUT',
         body: formData
     })
         .then(response => {

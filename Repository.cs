@@ -200,6 +200,42 @@ public class Repository : IRepository, IDisposable
         Close();
     }
     
+    /// <summary>
+    /// Version of update that takes value and conditions
+    /// </summary>
+    /// <param name="tableName"></param>
+    /// <param name="column"></param>
+    /// <param name="value"></param>
+    /// <param name="condition"></param>
+    public void Update(string tableName, string column, string value, string condition)
+    {
+        Init();
+        try
+        {
+            // Construct the query with parameters
+            string query = $"UPDATE {tableName} SET {column} = @Value WHERE {condition}";
+            Console.WriteLine(query);
+
+            using (SqlCommand stmt = new SqlCommand(query, con))
+            {
+                // Add parameter to prevent SQL injection
+                stmt.Parameters.AddWithValue("@Value", value);
+
+                int rowsAffected = stmt.ExecuteNonQuery();
+                Console.WriteLine($"{rowsAffected} rows updated.");
+            }
+        }
+        catch (SqlException ex)
+        {
+            PrintSqlException(ex);
+        }
+        finally
+        {
+            Close();
+        }
+    }
+
+    
     
     /// <summary>
     /// Updates rows in a table based on a condition and uses parameters for safe execution.
@@ -629,6 +665,34 @@ public List<Answer> GetAnswers(string questionId)
         Console.WriteLine("Error while parsing answers: " + ex.Message);
     }
     return answers;
+}
+
+public User GetUser(int userId)
+{
+    User user = null;
+    Select("*", "users WHERE id = " + userId); // Assuming the 'Select' method allows SQL queries.
+    try
+    {
+        foreach (var row in rs.Rows)
+        {
+            if (row.Columns.Count >= 4) // Ensure we have all 4 columns for the user (id, username, password, role)
+            {
+                int id = Convert.ToInt32(row.Columns[0]);
+                string username = row.Columns[1].ToString().Trim();
+                string password = row.Columns[2].ToString().Trim();
+                string role = row.Columns[3].ToString().Trim();
+                // Create a new User object and return it
+                user = new User(id, username, password, role);
+                break; // Exit the loop after we find the user
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        // Log the error (or handle it in a more robust way, e.g., logging)
+        Console.WriteLine("Error while retrieving user: " + ex.Message);
+    }
+    return user;
 }
 
 }
