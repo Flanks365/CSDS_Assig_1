@@ -1,30 +1,19 @@
 //// "use strict";
 
 const questions = [];
-const currQuestion = 0;
+var currQuestion = 0;
 const answers = []
 const answerCounts = {}
 const quizData = {}
+quizData.answers = [];
 var showCounts = true;
 var Chat = {};
 Chat.socket = null;
 
 console.log('test')
 
-if (document.readyState !== 'loading') {
-    //Chat.initialize();
-} else {
-    //document.addEventListener("DOMContentLoaded", function () {
-    //    //Chat.initialize();
-    //}, false);
-    //document.addEventListener("DOMContentLoaded", () => { initializePage() });
-}
-
 window.addEventListener('load', () => {
     initializePage();
-    if (isAutoplay() == 'true') {
-        setAutoplay();
-    }
 })
 
 
@@ -40,7 +29,7 @@ Chat.connect = (function (host) {
 
     Chat.socket.onopen = function () {
         console.log('Info: WebSocket connection opened.');
-        Chat.socket.send(JSON.stringify(quizData))
+        //Chat.socket.send(JSON.stringify(quizData))
         // document.getElementById('chat').onkeydown = function (event) {
         //     if (event.keyCode == 13) {
         //         Chat.sendMessage();
@@ -83,17 +72,17 @@ Chat.initialize = function () {
     // answers = []
     // answerCounts = {}
 
-    document.querySelector('.answers').querySelectorAll('.button-container').forEach(buttonContainer => {
-        const button = buttonContainer.querySelector('button')
-        answers.push({ id: button.dataset.answerId, text: button.innerHTML })
-        answerCounts[button.dataset.answerId] = new Set()
-    })
-    console.log(answers)
+    //document.querySelector('.answers').querySelectorAll('.button-container').forEach(buttonContainer => {
+    //    const button = buttonContainer.querySelector('button')
+    //    answers.push({ id: button.dataset.answerId, text: button.innerHTML })
+    //    answerCounts[button.dataset.answerId] = new Set()
+    //})
+    //console.log(answers)
 
     //const quizData = {}
-    quizData.dataType = "newQuestion"
-    quizData.message = questionText
-    quizData.answers = answers
+    //quizData.dataType = "newQuestion"
+    //quizData.message = questionText
+    //quizData.answers = answers
 
     document.getElementById('counter-toggle').addEventListener('click', toggleAnswerCounts)
     // document.querySelector('.answers').querySelectorAll('.button-container').forEach(buttonContainer => {
@@ -110,11 +99,20 @@ Chat.initialize = function () {
 
 
     if (window.location.protocol == 'http:') {
-        Chat.connect('ws://' + window.location.host + '/trivia/websocket/quiz');
+        Chat.connect('ws://' + window.location.host + '/websockets/quiz');
     } else {
-        Chat.connect('wss://' + window.location.host + '/trivia/websocket/quiz');
+        Chat.connect('wss://' + window.location.host + '/websockets/quiz');
     }
 };
+
+if (document.readyState !== 'loading') {
+    Chat.initialize();
+} else {
+    document.addEventListener("DOMContentLoaded", function () {
+        Chat.initialize();
+    }, false);
+    //document.addEventListener("DOMContentLoaded", () => { initializePage() });
+}
 
 
 function initializePage() {
@@ -162,14 +160,21 @@ function selectAnswer(element, categoryName, answerId, questionId, autoplay, cur
 function toggleButtonsDisabled(buttons) {
     buttons.forEach(button => {
         button.querySelector('button').disabled = !button.querySelector('button').disabled
+        //console.log(button);
+        //button.disabled = !button.disabled
     })
 }
 
 
-function setAutoplay() {
-    const correctAnswerID = document.getElementById('autoplayCorrectAnswer').value;
+function setAutoplay(corrButton, correctAnswerID) {
+    if (!isAutoplay()) {
+        return;
+    }
+    console.log('setting autoplay');
+    //const correctAnswerID = document.getElementById('autoplayCorrectAnswer').value;
     const questionInfo = document.getElementById('questionInfo');
-    let corrButton = document.getElementById(correctAnswerID);
+    //let corrButton = document.getElementById(correctAnswerID);
+    //let { corrButton, correctAnswerID } = getCorrectButton();
     let secondsRemaining = 10
     questionInfo.innerHTML = "Time left: " + secondsRemaining
     const myInterval = setInterval(() => {
@@ -199,6 +204,21 @@ function isAutoplay() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('autoplay') === 'true';
 }
+
+
+//function getCorrectButton() {
+//    let correctButton;
+//    let correctButtonId;
+//    document.querySelector('.answers').querySelectorAll('.button-container').forEach(button => {
+//        if (button.dataset.isCorrect == "Y") {
+//            correctButton = button;
+//            correctButtonId = button.dataset.id;
+//        }
+//    })
+//    if (correctButton && correctButtonId) {
+//        return { correctButton, correctButtonId }
+//    }
+//}
 
 
 function initializePageContent() {
@@ -260,7 +280,7 @@ function removePlayerAnswer(message) {
 
 function countAnswers() {
     document.querySelector('.answers').querySelectorAll('.button-container').forEach(buttonContainer => {
-        const ansId = buttonContainer.querySelector('button').dataset.answerId
+        const ansId = buttonContainer.querySelector('button').dataset.id
         const counter = buttonContainer.querySelector('span')
         // answers.push({id: button.dataset.answerId, text: button.innerHTML})
         counter.innerHTML = answerCounts[ansId].size
@@ -292,12 +312,19 @@ function getQuestions() {
 
 
 function setQuestion() {
+    if (currQuestion >= questions.length) {
+        document.getElementById("question-text").innerHTML = 'Quiz done!';
+        document.getElementById("quoteOrBlob").innerHTML = '';
+        document.querySelector('.answers').innerHTML = '';
+        return;
+    }
     const question = questions[currQuestion]
     document.getElementById("question-text").innerHTML = question.text;
+    document.getElementById("quoteOrBlob").innerHTML = '';
     if (question.mediaType.includes('image')) {
         document.getElementById("quoteOrBlob").appendChild( createImg(question.mediaType, question.mediaContent) );
     }
-    //document.getElementById("quoteOrBlob") = question.mediaContent;
+    quizData.message = question.text;
     getAnswers(question.id);
 }
 
@@ -315,21 +342,75 @@ function getAnswers(questionId) {
         .then(result => {
             const answerList = JSON.parse(result);
             console.log(answerList);
-            //questionList.forEach(question => {
-            //    questions.push(question);
-            //});
             console.log('getAnswersDone');
             return answerList;
         })
         .then(answers => {
+            document.querySelector('.answers').innerHTML = '';
+            quizData.answers = [];
             answers.forEach(answer => {
-                //console.log(answer);
-                const button = document.createElement('button');
-                button.innerHTML = answer.answerText;
-                const div = document.createElement('div');
-                div.classList.add('button-container');
-                div.appendChild(button);
-                document.querySelector('.answers').appendChild(div);
+                addAnswer(answer);
             })
+            document.querySelector('.answers').querySelectorAll('.button-container').forEach(buttonContainer => {
+                const button = buttonContainer.querySelector('button')
+                //answers.push({ id: button.dataset.answerId, text: button.innerHTML })
+                answerCounts[button.dataset.id] = new Set()
+            })
+            sendNewQuestion();
         })
+}
+
+
+function addAnswer(answer) {
+    const button = document.createElement('button');
+    button.innerHTML = answer.answerText;
+    //button.dataset.isCorrect = answer.isCorrect;
+    button.dataset.id = answer.id;
+    const span = document.createElement('span');
+    span.classList.add('answer-counter');
+    span.innerHTML = 0;
+    const div = document.createElement('div');
+    div.classList.add('button-container');
+    div.appendChild(button);
+    div.appendChild(span);
+    document.querySelector('.answers').appendChild(div);
+
+    const buttons = document.querySelector('.answers').childNodes;
+
+    quizData.answers.push({ text: answer.answerText, id: answer.id })
+    //answerCounts[answer.id] = [];
+
+    if (answer.isCorrect === 'Y') {
+        button.onclick = () => {
+            const message = { dataType: 'hostAnswered', message: 'Correct answer: ' + answer.answerText, selection: answer.id }
+            console.log(message)
+            Chat.socket.send(JSON.stringify(message))
+            toggleButtonsDisabled(buttons)
+            button.classList.add('correctButton')
+            setTimeout(() => {
+                toggleButtonsDisabled(buttons)
+                button.classList.remove('correctButton')
+                console.log('move to next q');
+                currQuestion++;
+                setQuestion();
+            }, 1000)
+        }
+        setAutoplay(button, answer.id);
+    } else {
+        button.onclick = () => {
+            toggleButtonsDisabled(buttons)
+            button.classList.add('incorrectButton')
+            setTimeout(() => {
+                toggleButtonsDisabled(buttons)
+                button.classList.remove('incorrectButton')
+            }, 500)
+        }
+    }
+}
+
+
+function sendNewQuestion() {
+    quizData.dataType = "newQuestion"
+    console.log(quizData);
+    Chat.socket.send(JSON.stringify(quizData));
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Collections.Generic;
+using System.Net.WebSockets;
 
 namespace CSDS_Assign_1.Controllers
 {
@@ -90,6 +91,7 @@ namespace CSDS_Assign_1.Controllers
         [HttpGet("main")]
         public IActionResult Main()
         {
+            Console.WriteLine("in main");
             var username = HttpContext.Session.GetString("USERNAME");
             string role = HttpContext.Session.GetString("ROLE");
             
@@ -266,6 +268,13 @@ namespace CSDS_Assign_1.Controllers
             var htmlContent = System.IO.File.ReadAllText(filePath);
 
             return htmlContent;
+        }
+
+
+        [HttpGet("moderatedQuiz")]
+        public IActionResult ModeratedQuiz()
+        {
+            return GetHtmlFile("moderatedQuiz");
         }
     }
 }

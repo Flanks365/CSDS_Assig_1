@@ -17,11 +17,16 @@ Chat.connect = (function (host) {
 
     Chat.socket.onopen = function () {
         console.log('Info: WebSocket connection opened.');
+        const connectionData = { dataType: 'join' };
+        //connectionData.dataType == 'join';
+        Chat.socket.send(JSON.stringify(connectionData));
     };
 
     Chat.socket.onclose = function () {
         // document.getElementById('chat').onkeydown = null;
         console.log('Info: WebSocket closed.');
+        Chat.socket.send('closed');
+        Chat.socket.close();
     };
 
     Chat.socket.onmessage = function (message) {
@@ -47,9 +52,9 @@ Chat.connect = (function (host) {
 
 Chat.initialize = function () {
     if (window.location.protocol == 'http:') {
-        Chat.connect('ws://' + window.location.host + '/trivia/websocket/quiz');
+        Chat.connect('ws://' + window.location.host + '/websockets/quiz');
     } else {
-        Chat.connect('wss://' + window.location.host + '/trivia/websocket/quiz');
+        Chat.connect('wss://' + window.location.host + '/websockets/quiz');
     }
 };
 
@@ -61,6 +66,7 @@ const answerContainer = document.getElementById('answer-container')
 console.log(answerContainer)
 
 function setAnswers(message) {
+    answerContainer.innerHTML = '';
     hostId = message.id
     console.log('in set answers')
     answerContainer.innerHTML = ''

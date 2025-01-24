@@ -41,6 +41,7 @@ namespace CSDS_Assign_1.Controllers
                 //string mainPage = getHTMLAsString("login.html");
                 //mainPage = mainPage.Replace("[USER_ID]", username);
                 HttpContext.Session.SetString("USERNAME", loginRequest.Username);
+                Console.WriteLine("login controller username: " + HttpContext.Session.GetString("USERNAME"));
                 
                 if (role.Equals("admin"))
                 {
