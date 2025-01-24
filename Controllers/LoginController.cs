@@ -2,7 +2,7 @@
 using System.Data;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ControllerExample.Controllers
+namespace CSDS_Assign_1.Controllers
 {
     [ApiController]
     public class LoginController : ControllerBase

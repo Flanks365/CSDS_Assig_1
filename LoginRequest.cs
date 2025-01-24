@@ -1,4 +1,4 @@
-﻿namespace ControllerExample
+﻿namespace CSDS_Assign_1
 {
     public class LoginRequest
     {
