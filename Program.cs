@@ -55,8 +55,8 @@ app.MapGet("/websockets/quiz", async (HttpContext context, ModeratedQuizService 
     }
 });
 
+// Add middleware before any sensitive endpoints
+app.UseMiddleware<AuthenticationMiddleware>();
+
 // Starts the application, listening for incoming HTTP requests.
 app.Run();
-
-
-

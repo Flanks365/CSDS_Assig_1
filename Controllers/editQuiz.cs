@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace CSDS_Assign_1.Controllers
 {
@@ -196,15 +197,32 @@ namespace CSDS_Assign_1.Controllers
             try
             {
                 // Query the database to get the questions for the given quizId
-                var questions = _repository.GetQuestions(id.ToString()); // Adjust with your actual repository and method
+                var questions = _repository.GetQuestions(id.ToString());
+                // Adjust with your actual repository and method
+                foreach (var item in questions)
+                {
+                    Console.WriteLine("Question with Answers details:");
+                    Console.WriteLine($"QuestId: {item.QuestId}");
+                    Console.WriteLine($"Corr: {item.Corr}");
+                    Console.WriteLine($"Dec1: {item.Dec1}");
+                    Console.WriteLine($"Dec2: {item.Dec2}");
+                    Console.WriteLine($"Dec3: {item.Dec3}");
+                    Console.WriteLine($"MediaTyp: {item.MediaTyp}");
+                    Console.WriteLine($"MediaPrev: {item.MediaPrev}");
+                    Console.WriteLine($"Question: {item.Question}");
+                    Console.WriteLine("--------------------------------------------------");
+                }
+                
                 
                 if (questions == null || !questions.Any())
                 {
                     return NotFound("No questions found.");
                 }
                 
+
                 // Return the data as JSON
-                return Ok(questions);
+                var json = JsonConvert.SerializeObject(questions);
+                return Ok(json);
             }
             catch (Exception ex)
             {
@@ -214,9 +232,150 @@ namespace CSDS_Assign_1.Controllers
             }
         }
 
-        
-        
+        [HttpPost("postQuestions")]
+        public IActionResult PostQuestions()
+        {
+            try
+            {
+                var formData = Request.Form;
+                
+                // Log the form data for debugging purposes
+                foreach (var key in Request.Form.Keys)
+                {
+                    var value = Request.Form[key];
+                    Console.WriteLine($"{key}: {value} (Type: {value.GetType()})");
+                }
+                
+                var question = formData["Question"];
+                var answer = formData["Answer"];
+                var decoy1 = formData["Decoy1"];
+                var decoy2 = formData["Decoy2"];
+                var decoy3 = formData["Decoy3"];
+                var contentType = formData["ContentType"];
+                var fileName = formData["FileName"];
+                var quoteText = formData["QuoteText"];
+                var quizId = int.Parse(formData["id"].ToString());
+                
+                byte[] fileBytes = null;
+                string imageType = null;
+                
+                if (contentType == "image")
+                {
+                    var file = Request.Form.Files.GetFile("FileName");
+                    imageType = file.ContentType;
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        file.CopyTo(memoryStream);
+                        fileBytes = memoryStream.ToArray();
+                    }
+                }
+                
+                // Construct the SQL insert query
+                string tableString = "questions"; // Table name
+                string setString = "question_text, media_type, media_content, media_preview, category_id";
+                string valueString = $"'{question}', '{contentType}', @FileData, '{quoteText}', {quizId}";
+                
+                _repository.Insert(tableString, setString, valueString, "blob", new MemoryStream(fileBytes));
+                
+                // Construct answers SQL insert query
+                string answersTableString = "answers";
+                string answersSetString = "question_id, answer_text, is_correct, answer_index";  // Removed the semicolon here
+                string answersValueString = $"(SELECT MAX(id) FROM questions), '{answer.ToString()}', 'Y', 1";
+                string decoy1ValueString = $"(SELECT MAX(id) FROM questions), '{decoy1.ToString()}', 'N', 2";
+                string decoy2ValueString = $"(SELECT MAX(id) FROM questions), '{decoy2.ToString()}', 'N', 3";
+                string decoy3ValueString = $"(SELECT MAX(id) FROM questions), '{decoy3.ToString()}', 'N', 4";
 
+                
+                _repository.Insert(answersTableString, answersSetString, answersValueString);
+                _repository.Insert(answersTableString, answersSetString, decoy1ValueString);
+                _repository.Insert(answersTableString, answersSetString, decoy2ValueString);
+                _repository.Insert(answersTableString, answersSetString, decoy3ValueString);
+                
+                return Ok("Question added successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPut("updateQuest")]
+        public IActionResult UpdateQuestions()
+        {
+            try
+            {
+                var formData = Request.Form;
+
+                var questionId = int.Parse(formData["questionId"].ToString());
+
+                var questionText = formData["Question"].ToString();
+                var ansText = formData["Answer"].ToString();
+                var dec1 = formData["Decoy1"].ToString();
+                var dec2 = formData["Decoy2"].ToString();
+                var dec3 = formData["Decoy3"].ToString();
+
+                var contentType = formData["ContentType"];
+                var quoteText = formData["QuoteText"];
+
+                byte[] fileBytes = null;
+                string imageType = null;
+
+                
+                var file = Request.Form.Files.GetFile("FileName");
+                imageType = file.ContentType;
+                if (file != null && file.Length > 0)
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        file.CopyTo(memoryStream);
+                        fileBytes = memoryStream.ToArray();
+                    }
+                }
+
+
+                string tableString = "questions";
+                string setString = "question_text, media_type, media_content, media_preview";
+                string valueString = $"{questionText}, {contentType}, {quoteText}";
+                string condString = $"id = {questionId}";
+                _repository.Update(tableString, setString, valueString, condString);
+
+                if (fileBytes != null)
+                {
+                    string imageSet = "media_content = @binaryData";
+                    _repository.Update(tableString, imageSet, new MemoryStream(fileBytes));
+                }
+
+                string answersTableString = "answers";
+                string answer1setString = "answer_text";
+                string answer2setString = "answer_text";
+                string answer3setString = "answer_text";
+                string answer4setString = "answer_text";
+
+                string answer1Value = $"{ansText}";
+                string answer2Value = $"{dec1}";
+                string answer3Value = $"{dec2}";
+                string answer4Value = $"{dec3}";
+
+                string answer1Cond = $"{questionId}, {1}";
+                string answer2Cond = $"{questionId}, {2}";
+                string answer3Cond = $"{questionId}, {3}";
+                string answer4Cond = $"{questionId}, {4}";
+
+                _repository.Update(answersTableString, answer1setString, answer1Value, answer1Cond);
+                _repository.Update(answersTableString, answer2setString, answer2Value, answer2Cond);
+                _repository.Update(answersTableString, answer3setString, answer3Value, answer3Cond);
+                _repository.Update(answersTableString, answer4setString, answer4Value, answer4Cond);
+
+                return Ok("Question updated successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+
+        }
+        
 
         // Serve an HTML file
         [HttpGet("html/{str}")]
