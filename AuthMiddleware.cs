@@ -16,6 +16,13 @@ namespace CSDS_Assign_1
             "/updateQuest"
         };
 
+        private readonly string[] adminPaths =
+        {
+            "/editquiz",
+            "/editquizzes",
+            "/getquestions"
+        };
+
         public AuthenticationMiddleware(RequestDelegate next)
         {
             _next = next;
@@ -31,6 +38,21 @@ namespace CSDS_Assign_1
                 {
                     await _next(context);
                     return;
+                }
+            }
+
+            foreach (var aPath in adminPaths)
+            {
+                //check if the path is an admin page
+                if (path == aPath)
+                {
+                    //check if user is admin
+                    var role = context.Session.GetString("ROLE");
+                    if (role != "admin")
+                    {
+                        Console.WriteLine("ur not an admin!");
+                        context.Response.Redirect("main");
+                    }
                 }
             }
 
