@@ -375,7 +375,24 @@ public IActionResult UpdateQuestions()
     }
 }
 
-        
+        [HttpDelete("deleteQuestion")]
+        public IActionResult DeleteQuestion()
+        {
+            try
+            {
+                var questionId = int.Parse(Request.Form["questionId"].ToString());
+                
+                string tableString = "questions";
+                string setString = "question_id";
+                string whereString = "id = @questionId";
+                _repository.Delete(tableString, whereString,questionId);
+                return Ok("Question deleted successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
         // Serve an HTML file
         [HttpGet("html/{str}")]
