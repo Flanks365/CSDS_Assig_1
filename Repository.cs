@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 public class Repository : IRepository, IDisposable
 {
     // CHANGE THESE TO YOUR OWN
-    private readonly string databaseIP = "127.0.0.1";
+    private readonly string databaseIP = "127.0.0.1"; // database IP, try 192.168.1.165
     private readonly string databasePort = "1433"; // 1433 is default
     private readonly string myDatabase = "master";
     private readonly string myUser = "sa";
@@ -199,7 +199,7 @@ public class Repository : IRepository, IDisposable
         }
         Close();
     }
-    
+
     /// <summary>
     /// Version of update that takes value and conditions
     /// </summary>
@@ -235,8 +235,8 @@ public class Repository : IRepository, IDisposable
         }
     }
 
-    
-    
+
+
     /// <summary>
     /// Updates rows in a table based on a condition and uses parameters for safe execution.
     /// </summary>
@@ -278,7 +278,7 @@ public class Repository : IRepository, IDisposable
             Console.WriteLine($"Message: {ex.Message}");
             Console.WriteLine($"SQLState: {ex.State}");
             Console.WriteLine($"ErrorCode: {ex.ErrorCode}");
-        
+
             // Optionally, log each inner exception (if any)
             SqlException innerEx = ex.InnerException as SqlException;
             while (innerEx != null)
@@ -300,8 +300,8 @@ public class Repository : IRepository, IDisposable
     }
 
 
-    
-    
+
+
 
     /// <summary>
     /// Updates rows in a table based on a binary data stream.
@@ -360,7 +360,7 @@ public class Repository : IRepository, IDisposable
         }
         Close();
     }
-    
+
     public void Delete(string tableString, string conditionString, int questionId)
     {
         Init();
@@ -407,14 +407,14 @@ public class Repository : IRepository, IDisposable
             {
                 using (SqlDataReader reader = stmt.ExecuteReader())
                 {
-                    rs.Rows.Clear();  
+                    rs.Rows.Clear();
 
                     while (reader.Read())
                     {
                         Row row = new Row();
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            if (reader.GetFieldType(i) == typeof(byte[]))  
+                            if (reader.GetFieldType(i) == typeof(byte[]))
                             {
                                 row.Columns.Add(reader.GetValue(i));
                             }
@@ -424,9 +424,9 @@ public class Repository : IRepository, IDisposable
                             }
                             else if (reader.GetFieldType(i) == typeof(Guid))
                             {
-                                row.Columns.Add(reader.GetGuid(i).ToString());  
+                                row.Columns.Add(reader.GetGuid(i).ToString());
                             }
-                            else  
+                            else
                             {
                                 row.Columns.Add(reader.GetString(i));
                             }
@@ -505,7 +505,7 @@ public class Repository : IRepository, IDisposable
         }
         Close();
     }
-    
+
 
     /// <summary>
     /// Reads a binary stream and converts it into a byte array.
@@ -552,7 +552,7 @@ public class Repository : IRepository, IDisposable
     public List<Category> GetCategories()
     {
         List<Category> categories = new List<Category>();
-    
+
         Select("*", "categories");
 
         try
@@ -561,16 +561,11 @@ public class Repository : IRepository, IDisposable
             {
                 if (row.Columns.Count >= 3)
                 {
-                    
-                    
                     // Directly cast the 'id' column to int (as it's an int in the database)
                     int id = Convert.ToInt32(row.Columns[0]);
-
                     string categoryName = row.Columns[1].ToString().Trim();
                     string imgType = row.Columns[2].ToString().Trim();
-
                     byte[]? image = row.Columns[3] as byte[];
-
                     // Create a new Category with the int id
                     categories.Add(new Category(id, categoryName, imgType, image!));
                 }
@@ -585,143 +580,142 @@ public class Repository : IRepository, IDisposable
 
 
     public List<Questions_W_Answers> GetQuestions(string categoryId)
-{
-    List<Question> questions = new List<Question>();
-    List<Answer> answers = new List<Answer>();
-    List<Questions_W_Answers> res = new List<Questions_W_Answers>();
-    
-    Console.WriteLine($"Fetching questions for categoryId: {categoryId}");
-
-    Select("*", "questions", $"category_id = {categoryId}");
-
-    try
     {
-        // Printing number of rows fetched from the database
-        Console.WriteLine($"Rows fetched: {rs.Rows.Count}");
+        List<Question> questions = new List<Question>();
+        List<Answer> answers = new List<Answer>();
+        List<Questions_W_Answers> res = new List<Questions_W_Answers>();
 
-        foreach (var row in rs.Rows)
+        Console.WriteLine($"Fetching questions for categoryId: {categoryId}");
+
+        Select("*", "questions", $"category_id = {categoryId}");
+
+        try
         {
-            if (row.Columns.Count >= 6)
+            // Printing number of rows fetched from the database
+            Console.WriteLine($"Rows fetched: {rs.Rows.Count}");
+
+            foreach (var row in rs.Rows)
             {
-                string id = row.Columns[0].ToString().Trim();
-                string text = row.Columns[1].ToString().Trim();
-                string mediaType = row.Columns[2].ToString().Trim();
-                byte[]? mediaContent = row.Columns[3] as byte[];
-                string mediaPreview = row.Columns[4].ToString().Trim();
-                //string categoryId = row.Columns[5].ToString().Trim();
-
-                Console.WriteLine($"Question Id: {id}, Text: {text}, MediaType: {mediaType}, MediaPreview: {mediaPreview}");
-
-                questions.Add(new Question(id, text, mediaType, mediaContent!, mediaPreview, categoryId));
-            }
-        }
-
-        foreach (var question in questions)
-        {
-            Console.WriteLine($"Fetching answers for questionId: {question.Id}");
-            answers = GetAnswers(question.Id);
-    
-            List<String> answersList = new List<String>();
-            var correctAnswer = answers.FirstOrDefault(a => a.IsCorrect == "Y");
-            if (correctAnswer != null)
-            {
-                answersList.Insert(0, correctAnswer.AnswerText); // Add correct answer first
-            }
-
-            // Add other answers, avoiding duplicates
-            foreach (var ans in answers)
-            {
-                if (ans.IsCorrect != "Y" && !answersList.Contains(ans.AnswerText))
+                if (row.Columns.Count >= 6)
                 {
-                    answersList.Add(ans.AnswerText);
-                }
+                    string id = row.Columns[0].ToString().Trim();
+                    string text = row.Columns[1].ToString().Trim();
+                    string mediaType = row.Columns[2].ToString().Trim();
+                    byte[]? mediaContent = row.Columns[3] as byte[];
+                    string mediaPreview = row.Columns[4].ToString().Trim();
+                    //string categoryId = row.Columns[5].ToString().Trim();
 
-                // Ensure no more than 4 answers are added
-                if (answersList.Count == 4)
-                {
-                    break;
+                    Console.WriteLine($"Question Id: {id}, Text: {text}, MediaType: {mediaType}, MediaPreview: {mediaPreview}");
+
+                    questions.Add(new Question(id, text, mediaType, mediaContent!, mediaPreview, categoryId));
                 }
             }
 
-            // Log answers
-            Console.WriteLine($"Answers for question {question.Id}: {string.Join(", ", answersList)}");
-
-            res.Add(new Questions_W_Answers(question.Id,
-                answersList.ElementAtOrDefault(0), answersList.ElementAtOrDefault(1),
-                answersList.ElementAtOrDefault(2), answersList.ElementAtOrDefault(3),
-                question.MediaType, question.MediaPreview, question.Text));
-        }
-
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("Error while parsing categories: " + ex.Message);
-    }
-    return res;
-}
-
-public List<Answer> GetAnswers(string questionId)
-{
-    List<Answer> answers = new List<Answer>();
-
-    Console.WriteLine($"Fetching answers for questionId: {questionId}");
-    Select("*", "answers", $"question_id = {questionId}");
-
-    try
-    {
-        // Printing number of rows fetched for answers
-        Console.WriteLine($"Rows fetched for answers: {rs.Rows.Count}");
-
-        foreach (var row in rs.Rows)
-        {
-            if (row.Columns.Count >= 5)
+            foreach (var question in questions)
             {
-                string id = row.Columns[0].ToString().Trim();
-                string answerText = row.Columns[2].ToString().Trim();
-                string isCorrect = row.Columns[3].ToString().Trim();
-                string answerIndex = row.Columns[4].ToString().Trim();
+                Console.WriteLine($"Fetching answers for questionId: {question.Id}");
+                answers = GetAnswers(question.Id);
 
-                Console.WriteLine($"Answer Id: {id}, AnswerText: {answerText}, IsCorrect: {isCorrect}, AnswerIndex: {answerIndex}");
+                List<String> answersList = new List<String>();
+                var correctAnswer = answers.FirstOrDefault(a => a.IsCorrect == "Y");
+                if (correctAnswer != null)
+                {
+                    answersList.Insert(0, correctAnswer.AnswerText); // Add correct answer first
+                }
 
-                answers.Add(new Answer(id, questionId, answerText, isCorrect, answerIndex));
+                // Add other answers, avoiding duplicates
+                foreach (var ans in answers)
+                {
+                    if (ans.IsCorrect != "Y" && !answersList.Contains(ans.AnswerText))
+                    {
+                        answersList.Add(ans.AnswerText);
+                    }
+
+                    // Ensure no more than 4 answers are added
+                    if (answersList.Count == 4)
+                    {
+                        break;
+                    }
+                }
+
+                // Log answers
+                Console.WriteLine($"Answers for question {question.Id}: {string.Join(", ", answersList)}");
+
+                res.Add(new Questions_W_Answers(question.Id,
+                    answersList.ElementAtOrDefault(0), answersList.ElementAtOrDefault(1),
+                    answersList.ElementAtOrDefault(2), answersList.ElementAtOrDefault(3),
+                    question.MediaType, question.MediaPreview, question.Text));
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error while parsing categories: " + ex.Message);
+        }
+        return res;
+    }
+
+    public List<Answer> GetAnswers(string questionId)
+    {
+        List<Answer> answers = new List<Answer>();
+
+        Console.WriteLine($"Fetching answers for questionId: {questionId}");
+        Select("*", "answers", $"question_id = {questionId}");
+
+        try
+        {
+            // Printing number of rows fetched for answers
+            Console.WriteLine($"Rows fetched for answers: {rs.Rows.Count}");
+
+            foreach (var row in rs.Rows)
+            {
+                if (row.Columns.Count >= 5)
+                {
+                    string id = row.Columns[0].ToString().Trim();
+                    string answerText = row.Columns[2].ToString().Trim();
+                    string isCorrect = row.Columns[3].ToString().Trim();
+                    string answerIndex = row.Columns[4].ToString().Trim();
+
+                    Console.WriteLine($"Answer Id: {id}, AnswerText: {answerText}, IsCorrect: {isCorrect}, AnswerIndex: {answerIndex}");
+
+                    answers.Add(new Answer(id, questionId, answerText, isCorrect, answerIndex));
+                }
             }
         }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("Error while parsing answers: " + ex.Message);
-    }
-    return answers;
-}
-
-public User GetUser(int userId)
-{
-    User user = null;
-    Select("*", "users WHERE id = " + userId); // Assuming the 'Select' method allows SQL queries.
-    try
-    {
-        foreach (var row in rs.Rows)
+        catch (Exception ex)
         {
-            if (row.Columns.Count >= 4) // Ensure we have all 4 columns for the user (id, username, password, role)
+            Console.WriteLine("Error while parsing answers: " + ex.Message);
+        }
+        return answers;
+    }
+
+    public User GetUser(int userId)
+    {
+        User user = null;
+        Select("*", "users WHERE id = " + userId); // Assuming the 'Select' method allows SQL queries.
+        try
+        {
+            foreach (var row in rs.Rows)
             {
-                int id = Convert.ToInt32(row.Columns[0]);
-                string username = row.Columns[1].ToString().Trim();
-                string password = row.Columns[2].ToString().Trim();
-                string role = row.Columns[3].ToString().Trim();
-                // Create a new User object and return it
-                user = new User(id, username, password, role);
-                break; // Exit the loop after we find the user
+                if (row.Columns.Count >= 4) // Ensure we have all 4 columns for the user (id, username, password, role)
+                {
+                    int id = Convert.ToInt32(row.Columns[0]);
+                    string username = row.Columns[1].ToString().Trim();
+                    string password = row.Columns[2].ToString().Trim();
+                    string role = row.Columns[3].ToString().Trim();
+                    // Create a new User object and return it
+                    user = new User(id, username, password, role);
+                    break; // Exit the loop after we find the user
+                }
             }
         }
+        catch (Exception ex)
+        {
+            // Log the error (or handle it in a more robust way, e.g., logging)
+            Console.WriteLine("Error while retrieving user: " + ex.Message);
+        }
+        return user;
     }
-    catch (Exception ex)
-    {
-        // Log the error (or handle it in a more robust way, e.g., logging)
-        Console.WriteLine("Error while retrieving user: " + ex.Message);
-    }
-    return user;
-}
-
 }
 
 /// <summary>
