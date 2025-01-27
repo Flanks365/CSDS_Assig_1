@@ -127,7 +127,7 @@ function deleteQuestionData(buttonId) {
     const form = document.getElementById(`edit-form-${quizId}`);
     const formData = new FormData(form);
 
-    fetch("../deleteQuestions", {
+    fetch("../deleteQuestion", {
         method: 'DELETE',
         body: formData
     })
