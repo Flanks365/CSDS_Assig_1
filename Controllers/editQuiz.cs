@@ -258,17 +258,32 @@ namespace CSDS_Assign_1.Controllers
                 
                 byte[] fileBytes = null;
                 string imageType = null;
+
+                var fileExtension = "";
                 
                 if (contentType == "image")
                 {
                     var file = Request.Form.Files.GetFile("FileName");
-                    imageType = file.ContentType;
-                    using (var memoryStream = new MemoryStream())
+
+                    if (file != null)
                     {
-                        file.CopyTo(memoryStream);
-                        fileBytes = memoryStream.ToArray();
+                        imageType = file.ContentType;
+
+                        // Extract file extension from the uploaded file's name
+                         fileExtension = Path.GetExtension(file.FileName).Substring(1);
+
+                        using (var memoryStream = new MemoryStream())
+                        {
+                            file.CopyTo(memoryStream);
+                            fileBytes = memoryStream.ToArray();
+                        }
+
+                        // Log the file extension for debugging purposes
+                        Console.WriteLine($"File extension: {fileExtension}");
                     }
                 }
+
+                contentType += "/" + fileExtension;
                 
                 // Construct the SQL insert query
                 string tableString = "questions"; // Table name
