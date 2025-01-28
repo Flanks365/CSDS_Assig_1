@@ -378,7 +378,8 @@ function getAnswers(questionId) {
             document.querySelector('.answers').innerHTML = '';
             quizData.answers = [];
             answers.forEach(answer => {
-                addAnswer(answer);
+                if (answer.answerText && answer.answerText != "" && answer.answerText != "null")
+                    addAnswer(answer);
             })
             document.querySelector('.answers').querySelectorAll('.button-container').forEach(buttonContainer => {
                 const button = buttonContainer.querySelector('button')
