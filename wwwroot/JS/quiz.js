@@ -298,7 +298,7 @@ function getQuestions() {
     const urlParams = new URLSearchParams(window.location.search);
     // const myParam = urlParams.get('autoplay');
     const categoryId = urlParams.get('category_id');
-    fetch('questionsFromDb?category_id=' + categoryId)
+    fetch('questionsfromdbnoanswers?category_id=' + categoryId)
         .then(response => response.text())
         .then(result => {
             const questionList = JSON.parse(result);
@@ -324,6 +324,15 @@ function setQuestion() {
     if (question.mediaType.includes('image')) {
         document.getElementById("quoteOrBlob").appendChild( createImg(question.mediaType, question.mediaContent) );
     }
+    if (question.mediaType.includes('audio')) {
+        document.getElementById("quoteOrBlob").appendChild(createAudio(question.mediaType, question.mediaContent));
+    }
+    if (question.mediaType.includes('video')) {
+        document.getElementById("quoteOrBlob").appendChild(createVideo(question.mediaType, question.mediaContent));
+    }
+    if (question.mediaType.includes('quote')) {
+        document.getElementById("quoteOrBlob").appendChild(createText(question.mediaContent));
+    }
     quizData.message = question.text;
     getAnswers(question.id);
 }
@@ -333,6 +342,24 @@ function createImg(imgType, imgString) {
     const img = document.createElement('img');
     img.src = `data:${imgType};base64,${imgString}`;
     return img;
+}
+
+function createAudio(fileType, fileString) {
+    const audio = document.createElement('audio');
+    audio.src = `data:${fileType};base64,${fileString}`;
+    return audio;
+}
+
+function createVideo(fileType, fileString) {
+    const video = document.createElement('video');
+    video.src = `data:${fileType};base64,${fileString}`;
+    return video;
+}
+
+function createQuote(text) {
+    const p = document.createElement('p');
+    p.innerHTML = text;
+    return p;
 }
 
 

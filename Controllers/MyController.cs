@@ -188,6 +188,25 @@ namespace CSDS_Assign_1.Controllers
         }
 
         /// <summary>
+        /// Retrieves the list of questions from the database, for the specified category.
+        /// </summary>
+        /// <returns>An IActionResult containing the list of questions or an error message.</returns>
+        [HttpGet("questionsFromDBnoanswers")]
+        public IActionResult GetQuestionsNoAnswers(string? category_id = null)
+        {
+            Console.WriteLine($"Category ID: {category_id}");
+            try
+            {
+                var questions = _repository.GetQuestionsNoAnswers(category_id);
+                return Ok(questions); // Return 200 OK with the categories list
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Retrieves the list of answers from the database, for the specified question.
         /// </summary>
         /// <returns>An IActionResult containing the list of answers or an error message.</returns>

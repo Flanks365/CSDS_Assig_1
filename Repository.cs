@@ -11,8 +11,8 @@ public class Repository : IRepository, IDisposable
 {
     // CHANGE THESE TO YOUR OWN
     private readonly string databaseIP = "127.0.0.1"; // database IP, try 192.168.1.165
-    private readonly string databasePort = "1433"; // 1433 is default
-    private readonly string myDatabase = "master";
+    private readonly string databasePort = "1434"; // 1433 is default
+    private readonly string myDatabase = "QuizApp";
     private readonly string myUser = "sa";
     private readonly string myPassword = "Oracle12!";
 
@@ -576,6 +576,35 @@ public class Repository : IRepository, IDisposable
             Console.WriteLine("Error while parsing categories: " + ex.Message);
         }
         return categories;
+    }
+
+
+    public List<Question> GetQuestionsNoAnswers(string categoryId)
+    {
+        List<Question> questions = new List<Question>();
+        Select("*", "questions", $"category_id = {categoryId}");
+        try
+        {
+
+            foreach (var row in rs.Rows)
+            {
+                if (row.Columns.Count >= 6)
+                {
+                    string id = row.Columns[0].ToString().Trim();
+                    string text = row.Columns[1].ToString().Trim();
+                    string mediaType = row.Columns[2].ToString().Trim();
+                    byte[]? mediaContent = row.Columns[3] as byte[];
+                    string mediaPreview = row.Columns[4].ToString().Trim();
+                    //string categoryId = row.Columns[5].ToString().Trim();
+                    questions.Add(new Question(id, text, mediaType, mediaContent!, mediaPreview, categoryId));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error while parsing categories: " + ex.Message);
+        }
+        return questions;
     }
 
 
