@@ -331,7 +331,7 @@ function setQuestion() {
         document.getElementById("quoteOrBlob").appendChild(createVideo(question.mediaType, question.mediaContent));
     }
     if (question.mediaType.includes('quote')) {
-        document.getElementById("quoteOrBlob").appendChild(createText(question.mediaContent));
+        document.getElementById("quoteOrBlob").appendChild(createQuote(question.mediaPreview));
     }
     quizData.message = question.text;
     getAnswers(question.id);
@@ -347,12 +347,14 @@ function createImg(imgType, imgString) {
 function createAudio(fileType, fileString) {
     const audio = document.createElement('audio');
     audio.src = `data:${fileType};base64,${fileString}`;
+    audio.controls = true;
     return audio;
 }
 
 function createVideo(fileType, fileString) {
     const video = document.createElement('video');
     video.src = `data:${fileType};base64,${fileString}`;
+    video.controls = true;
     return video;
 }
 

@@ -260,8 +260,18 @@ namespace CSDS_Assign_1.Controllers
                 string imageType = null;
 
                 var fileExtension = "";
-                
-                if (contentType == "image")
+
+                if (contentType == "quote")
+                {
+
+                    // Construct the SQL insert query
+                    string tableString = "questions"; // Table name
+                    string setString = "question_text, media_type, media_preview, category_id";
+                    string valueString = $"'{question}', '{contentType}', '{quoteText}', {quizId}";
+
+                    _repository.Insert(tableString, setString, valueString);
+                }
+                else
                 {
                     var file = Request.Form.Files.GetFile("FileName");
 
@@ -281,16 +291,17 @@ namespace CSDS_Assign_1.Controllers
                         // Log the file extension for debugging purposes
                         Console.WriteLine($"File extension: {fileExtension}");
                     }
-                }
 
-                contentType += "/" + fileExtension;
+                    contentType += "/" + fileExtension;
+
+                    // Construct the SQL insert query
+                    string tableString = "questions"; // Table name
+                    string setString = "question_text, media_type, media_content, media_preview, category_id";
+                    string valueString = $"'{question}', '{contentType}', @FileData, '{quoteText}', {quizId}";
+
+                    _repository.Insert(tableString, setString, valueString, "blob", new MemoryStream(fileBytes));
+                }
                 
-                // Construct the SQL insert query
-                string tableString = "questions"; // Table name
-                string setString = "question_text, media_type, media_content, media_preview, category_id";
-                string valueString = $"'{question}', '{contentType}', @FileData, '{quoteText}', {quizId}";
-                
-                _repository.Insert(tableString, setString, valueString, "blob", new MemoryStream(fileBytes));
                 
                 // Construct answers SQL insert query
                 string answersTableString = "answers";
